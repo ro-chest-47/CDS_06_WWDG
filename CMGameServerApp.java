@@ -64,7 +64,6 @@ public class CMGameServerApp {
 	}
 	
 	public int[] shuffleMonsterOrder(int[] arr, int count) {	// parameter로 monsterOrder를 넣는다.
-		// 내가 방장임을 증명한 후에 실행.
 		int tmp = 0, rand1 = 0, rand2 = 0;
 		
 		for(int i = 0; i < count; i++) {

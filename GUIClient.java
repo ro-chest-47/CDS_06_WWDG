@@ -1,4 +1,5 @@
 package gamePart;
+import java.util.Timer;
 import java.awt.*;
 import java.awt.event.*;
 //import java.awt.Color.*;
@@ -11,6 +12,8 @@ import javax.swing.text.StyledDocument;
 
 import kr.ac.konkuk.ccslab.cm.entity.CMUser;
 import kr.ac.konkuk.ccslab.cm.event.CMDummyEvent;
+import kr.ac.konkuk.ccslab.cm.event.CMUserEvent;
+import kr.ac.konkuk.ccslab.cm.info.CMInfo;
 import kr.ac.konkuk.ccslab.cm.info.CMInteractionInfo;
 import kr.ac.konkuk.ccslab.cm.stub.CMClientStub;
 
@@ -47,7 +50,9 @@ public class GUIClient extends JFrame {
 	private static final int NUMOFMONSTER = 15;
 	private static final int NUMOFBATTLECARD = 7;
 	
+	private boolean isThisPlayerChooseCard;
 	private boolean[] isMyBattleCardPossible;
+	private String[] otherPlayerAndCard;
 	private int[] otherBattleCard;
 	private int otherBattleCardIndex;
 	private int myCurrentBattleCard;
@@ -56,7 +61,8 @@ public class GUIClient extends JFrame {
 	private int myYellowGem;
 	private int myBlueGem;
 	
-	//private 
+	private Timer timer;
+	private TimerCountdown timerCountdown;
 	
 	private SecureRandom random;
 	
@@ -149,11 +155,13 @@ public class GUIClient extends JFrame {
 			monsterOrder[i] = i;
 		}
 		stageNum = 0;
-		isMyBattleCardPossible = new boolean[NUMOFBATTLECARD];
-		for(int i = 0; i<NUMOFBATTLECARD; i++) {
+		isMyBattleCardPossible = new boolean[NUMOFBATTLECARD + 1];
+		for(int i = 0; i<NUMOFBATTLECARD + 1; i++) {
 			isMyBattleCardPossible[i] = true;
 		}
 		
+		isThisPlayerChooseCard = false;
+		otherPlayerAndCard = new String[] {"", "", "", "", ""};
 		otherBattleCard = new int[] {0, 0, 0, 0, 0};
 		otherBattleCardIndex = 0;
 		myCurrentBattleCard = 0;
@@ -163,7 +171,20 @@ public class GUIClient extends JFrame {
 		myYellowGem = 0;
 		myBlueGem = 0;
 
+		timer = new Timer();
+		timerCountdown = new TimerCountdown();
 		random = new SecureRandom();
+	}
+	
+	public void proceedGame() {
+		stageNum = 0;
+		// 몬스터 정보 표시 후 1분 쉬기.
+		
+		// 1분 동안 카드 안 냈으면 무효 카드 제출? 랜덤 제출?
+		
+		// 배틀 스타트!
+		
+		// 종료 후 다시 1단계로 !
 	}
 	
 	public int[] shuffleMonsterOrder(int[] arr, int count) {	// parameter로 monsterOrder를 넣는다.
@@ -189,27 +210,38 @@ public class GUIClient extends JFrame {
 	}
 	
 	public void setMyBattleCard(int index) {
-		if(isMyBattleCardPossible[index] == false) {
-			return;
+		if(index != 0) { // index == 0 인 카드는 무효 카드.
+			if(isMyBattleCardPossible[index] == false) {
+				return;
+			}
 		}
-		myCurrentBattleCard = index;
+		isThisPlayerChooseCard = true;
+		myCurrentBattleCard = index ;
 		isMyBattleCardPossible[index] = false;
 		CMInteractionInfo interInfo = m_clientStub.getCMInfo().getInteractionInfo();
 		CMUser myself = interInfo.getMyself();
+//		CMSessionEvent cme = 
 		
-		CMDummyEvent due = new CMDummyEvent();
-		due.setHandlerSession(myself.getCurrentSession());
-		due.setHandlerGroup(myself.getCurrentGroup());
-		due.setDummyInfo("=========TEST MESSAGE==========");		// 여기에 보낼 메세지 입력 !!!!!
-		m_clientStub.cast(due, myself.getCurrentSession(), myself.getCurrentGroup());
-		due = null;
+		CMUserEvent use = new CMUserEvent();
+//		CMDummyEvent due = new CMDummyEvent();
+		use.setStringID("Set Battle Card");
+		use.setEventField(CMInfo.CM_STR, "userName", myself.getName());
+		use.setEventField(CMInfo.CM_INT, "battleCard", String.valueOf(myCurrentBattleCard));
+		
+//		due.setHandlerSession(myself.getCurrentSession());
+//		due.setHandlerGroup(myself.getCurrentGroup());
+//		due.setDummyInfo("=========TEST MESSAGE==========");		
+		m_clientStub.cast(use, myself.getCurrentSession(), myself.getCurrentGroup());
+//		due = null;
+		use = null;
 	}
 	
-	public void setOtherBattleCard(int battleCard) {
+	public void setOtherBattleCard(String playerName, int battleCard) {
 		// 유저들 간 절대적인 순서가 필요 !! 혹은 다른 유저의 ID까지 같이 받아와야 한다.
 		if(otherBattleCardIndex >= 5) {
 			return;
 		}
+		otherPlayerAndCard[otherBattleCardIndex] = playerName + " " + String.valueOf(battleCard);
 		otherBattleCard[otherBattleCardIndex] = battleCard;
 		otherBattleCardIndex++;
 	}
@@ -253,7 +285,8 @@ public class GUIClient extends JFrame {
 //				loseGems();
 				CMInteractionInfo interInfo = m_clientStub.getCMInfo().getInteractionInfo();
 				CMUser myself = interInfo.getMyself();
-				CMDummyEvent due = new CMDummyEvent();
+				CMUserEvent use = new CMUserEvent();
+//				CMDummyEvent due = new CMDummyEvent();
 				int maxNumOfGem = this.myRedGem;	// 세 보석 종류 중 가장 많은 수의 보석 개수.
 				int maxGemIndex = 4;				// 세 보석 종류 중 가장 많은 수의 보석. 3 bit로 bit-wise 계산. 4는 빨강, 2는 노랑, 1은 파랑.
 				
@@ -270,12 +303,13 @@ public class GUIClient extends JFrame {
 					maxGemIndex |= 1;
 				}
 				
+				use.setStringID("Lose Gems");
 				if((maxGemIndex & 4) == 4) {		// 빨강 보석 몰수 !!
-					due.setHandlerSession(myself.getCurrentSession());
-					due.setHandlerGroup(myself.getCurrentGroup());
-					due.setDummyInfo("=========TEST MESSAGE==========");		// 여기에 보낼 메세지 입력 !!!!!
-					m_clientStub.cast(due, myself.getCurrentSession(), myself.getCurrentGroup());
-					due = null;
+					use.setHandlerSession(myself.getCurrentSession());
+					use.setHandlerGroup(myself.getCurrentGroup());
+//					use.setDummyInfo("=========TEST MESSAGE==========");		// 여기에 보낼 메세지 입력 !!!!!
+					use.setEventField(CMInfo.CM_INT, "Lose Red Gems", String.valueOf(this.myRedGem));
+					m_clientStub.cast(use, myself.getCurrentSession(), myself.getCurrentGroup());
 					
 					if(!currentMonster.equals(lastMonster)) {
 						this.currentMonster.getNextMonster().plusGems(myRedGem, 0, 0);
@@ -284,11 +318,11 @@ public class GUIClient extends JFrame {
 				}
 				
 				if((maxGemIndex & 2) == 2) {		// 노랑 보석 몰수 !!
-					due.setHandlerSession(myself.getCurrentSession());
-					due.setHandlerGroup(myself.getCurrentGroup());
-					due.setDummyInfo("=========TEST MESSAGE==========");		// 여기에 보낼 메세지 입력 !!!!!
-					m_clientStub.cast(due, myself.getCurrentSession(), myself.getCurrentGroup());
-					due = null;
+					use.setHandlerSession(myself.getCurrentSession());
+					use.setHandlerGroup(myself.getCurrentGroup());
+//					due.setDummyInfo("=========TEST MESSAGE==========");		// 여기에 보낼 메세지 입력 !!!!!
+					use.setEventField(CMInfo.CM_INT, "Lose Yellow Gems", String.valueOf(this.myYellowGem));
+					m_clientStub.cast(use, myself.getCurrentSession(), myself.getCurrentGroup());
 					
 					if(!currentMonster.equals(lastMonster)) {
 						this.currentMonster.getNextMonster().plusGems(0, myYellowGem, 0);
@@ -297,17 +331,18 @@ public class GUIClient extends JFrame {
 				}
 				
 				if((maxGemIndex & 1) == 1) {		// 파랑 보석 몰수 !!
-					due.setHandlerSession(myself.getCurrentSession());
-					due.setHandlerGroup(myself.getCurrentGroup());
-					due.setDummyInfo("=========TEST MESSAGE==========");		// 여기에 보낼 메세지 입력 !!!!!
-					m_clientStub.cast(due, myself.getCurrentSession(), myself.getCurrentGroup());
-					due = null;
+					use.setHandlerSession(myself.getCurrentSession());
+					use.setHandlerGroup(myself.getCurrentGroup());
+//					due.setDummyInfo("=========TEST MESSAGE==========");		// 여기에 보낼 메세지 입력 !!!!!
+					use.setEventField(CMInfo.CM_INT, "Lose Blue Gems", String.valueOf(this.myBlueGem));
+					m_clientStub.cast(use, myself.getCurrentSession(), myself.getCurrentGroup());
 					
 					if(!currentMonster.equals(lastMonster)) {
 						this.currentMonster.getNextMonster().plusGems(0, 0, myBlueGem);
 					}
 					this.myBlueGem = 0;
 				}
+				use = null;
 			}
 		}
 		
@@ -317,6 +352,7 @@ public class GUIClient extends JFrame {
 		} else {
 			// Call Next Monster and Finish this battle
 			currentMonster = currentMonster.getNextMonster();
+			stageNum++;
 		}
 	}
 	
@@ -456,17 +492,8 @@ public class GUIClient extends JFrame {
 				if(strText == null) {
 					return;
 				}
-				CMInteractionInfo interInfo = m_clientStub.getCMInfo().getInteractionInfo();
-				CMUser myself = interInfo.getMyself();
 				printMessage(strText + "\n");
-//				processInput(strText);
-				
-				CMDummyEvent due = new CMDummyEvent();
-				due.setHandlerSession(myself.getCurrentSession());
-				due.setHandlerGroup(myself.getCurrentGroup());
-				due.setDummyInfo("=========TEST MESSAGE==========");		// 여기에 보낼 메세지 입력 !!!!!
-				m_clientStub.cast(due, myself.getCurrentSession(), myself.getCurrentGroup());
-				due = null;
+				m_clientStub.chat("/g", strText);
 				
 				input.setText("");
 				input.requestFocus();
