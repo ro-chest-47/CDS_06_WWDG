@@ -81,6 +81,9 @@ public class GUIClientEventHandler implements CMAppEventHandler{
 		} else if(ue.getStringID().equals("Show score")){
 			int score = Integer.parseInt(ue.getEventField(CMInfo.CM_INT, "Score"));
 			m_client.showAllScore(ue.getSender(), score);
+			
+		} else if(ue.getStringID().equals("Battle Finish")) {
+			m_client.battleFinish();
 		}
 	}
 

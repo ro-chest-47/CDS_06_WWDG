@@ -44,6 +44,7 @@ public class TimerCountdown extends TimerTask{
 		} else if (infoShowCount == 0) {
 			client.setOtherPlayersCard("");
 			client.setMonsterInfo(monsterInfo);
+			client.setIsThisPlayerChooseCard(false);
 			infoShowCount--;
 			
 		} else if (infoShowCount <= -1) {
