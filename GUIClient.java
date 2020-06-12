@@ -66,6 +66,10 @@ public class GUIClient extends JFrame {
 	private int myYellowGem;
 	private int myBlueGem;
 	private int myAggScore;
+	private int otherPlayerEventCount;
+	private String[] otherPlayerName;
+	private int[] otherPlayerScore;
+//	private String playerAndScore;
 	
 	private Timer timer;
 	private TimerCountdown timerCountdown;
@@ -103,7 +107,7 @@ public class GUIClient extends JFrame {
 		monsterInfo.setText("monsterInfo");
 		myDrawableCards.setText("myDrawableCards");
 		myScore.setText("myScore");
-		chatLog.setText("chatLog");
+//		chatLog.setText("chatLog");
 		userInfoBySessions.setText("userInfoBySessions");
 		
 		//////////For Test //////////
@@ -139,6 +143,16 @@ public class GUIClient extends JFrame {
 		pane.add(northPanel, BorderLayout.CENTER);
 		pane.add(southPanel, BorderLayout.SOUTH);
 		
+		for(int i=0; i<7; i++) {
+			myBattleCards[i].addActionListener(cmActionListener);
+		}
+		startButton.addActionListener(cmActionListener);
+		enterButton.addActionListener(cmActionListener);
+		loginButton.addActionListener(cmActionListener);
+		enterSession1Button.addActionListener(cmActionListener);
+		enterSession2Button.addActionListener(cmActionListener);
+		enterSession3Button.addActionListener(cmActionListener);
+		
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setSize(1000, 600);
 		setVisible(true);
@@ -169,6 +183,13 @@ public class GUIClient extends JFrame {
 		numOfPlayer = 0;
 		stageNum = 0;		// 얘는 몬스터와 한 번 싸울때마다 increase 시켜줘야 한다.
 		myAggScore = 0;		// 종합 스코어.
+		otherPlayerEventCount = 0;
+		otherPlayerName = new String[5];
+		otherPlayerScore = new int[5];
+		for(int i=0; i<5; i++) {
+			otherPlayerName[i] = "";
+			otherPlayerScore[i] = 0;
+		}
 		
 		// 한 던전 (다섯 스테이지)마다 초기화 해줘야 하는 것
 		isMyBattleCardPossible = new boolean[NUMOFBATTLECARD + 1];
@@ -207,6 +228,22 @@ public class GUIClient extends JFrame {
 		this.lastMonster = monster[monOrder[NUMOFMONSTER-1]];
 	}
 	
+	public void setOtherPlayersCard(String text) {
+		otherPlayersCard.setText(text);
+	}
+	
+	public void setDungeonAndStageInfo(String text) {
+		dungeonAndStageInfo.setText(text);
+	}
+	
+	public void setMonsterInfo(String text) {
+		monsterInfo.setText(text);
+	}
+	
+	public void setMyScore(String text) {
+		myScore.setText(text);
+	}
+	
 	public void proceedGame() {		// 게임 시작. 서버에서는 게임 시작 전에 monster order를 보내주어야 한다.
 		myRedGem = 0;
 		myYellowGem = 0;
@@ -215,8 +252,19 @@ public class GUIClient extends JFrame {
 		// getMemberNum()은 나를 제외한 그룹 인원 수를 반환한다.
 		stageNum = 0;
 		myAggScore = 0;
+		otherPlayerEventCount = 0;
+		for(int i=0; i<5; i++) {
+			otherPlayerName[i] = "";
+			otherPlayerScore[i] = 0;
+		}
 		
-		// 몬스터 정보 표시 후 1분 쉬기.
+		// 첫 번째 몬스터는 게임 시작 후 바로 보이게 한다.
+		String currentMonsterInfoText = currentMonster.getName()
+				+ "\nPower: " + currentMonster.getPower() + "\tRed Gem: " + currentMonster.getRedGem() 
+				+ "\tYellow Gem: " + currentMonster.getYellowGem() + "\tBlue Gem: " + currentMonster.getBlueGem();
+		setMonsterInfo(currentMonsterInfoText);
+		
+		
 		while(stageNum < 15) {
 			if((stageNum % 5) == 0) {	// stageNum % 5 == 0 이면 카드 초기화 해주기
 				for(int i = 0; i<NUMOFBATTLECARD + 1; i++) {
@@ -224,26 +272,37 @@ public class GUIClient extends JFrame {
 				}
 			}
 			isThisPlayerChooseCard = false;
-			otherPlayerAndCard = new String[] {"", "", "", "", ""};
+			for(int i=0; i<5; i++) {
+				otherPlayerAndCard[i] = "";
+				allPlayerCard[i] = 0;
+			}
+//			otherPlayerAndCard = new String[] {"", "", "", "", ""};
 //			otherBattleCard = new int[] {0, 0, 0, 0, 0};
 			otherBattleCardIndex = 0;
 			myCurrentBattleCard = 0;
 			isMyBattleCardActive = true;
-			allPlayerCard = new int[] {0, 0, 0, 0, 0};
+//			allPlayerCard = new int[] {0, 0, 0, 0, 0};
 			allPlayerCardCount = 0;
 			
-			String currentMonsterInfoText = currentMonster.getName()
+			setDungeonAndStageInfo("Stage: " + (stageNum + 1));
+			setMyScore("Red Gems: " + myRedGem + "\tYellow Gems: " + myYellowGem + "\tBlue Gems: " + myBlueGem);
+			
+			currentMonsterInfoText = currentMonster.getName()
 					+ "\nPower: " + currentMonster.getPower() + "\tRed Gem: " + currentMonster.getRedGem() 
 					+ "\tYellow Gem: " + currentMonster.getYellowGem() + "\tBlue Gem: " + currentMonster.getBlueGem();
-			monsterInfo.setText(currentMonsterInfoText);
-			timerCountdown.setCount(60);	// 카운트다운 60초 설정.
-			// 1분 동안 카드 안 냈으면 무효 카드 제출? 랜덤 제출? => 일단 무효 카드 제출로 설정. 카드 제출 할 때마다 알아서 카운트 세서 배틀 시작
+//			ssetMonsterInfo(currentMonsterInfoText);
+			timerCountdown.setInfoShowCount(10, currentMonsterInfoText);	// 카운트다운 10초 설정. 10초 뒤에 다음 몬스터의 정보와 상대방 카드 정보 갱신.
+			
+			timerCountdown.setDrawCount(30);;	// 카운트다운 30초 설정.
+			// 1분 동안 카드 안 냈으면 무효 카드 제출? 랜덤 제출? => 일단 무효 카드 제출로 설정. 카드 제출 할 때마다 알아서 카드 카운트를 세서 배틀 시작
 			stageNum++;
 			if(currentMonster.isNextMonsterExist()) {	// 배틀 종료 후 만약 이 몬스터가 마지막 몬스터가 아니면 다음 몬스터 띄워주고 다시 1단계로.  
 				currentMonster = currentMonster.getNextMonster();
 			} else {					
 				// 마지막 몬스터면 점수 산정 후 게임 종료.
 				myAggScore = getScore();
+				showMyScore();
+				
 				System.out.println("Game Over !");
 			}
 		}
@@ -269,7 +328,7 @@ public class GUIClient extends JFrame {
 				return;
 			}
 		}
-		timerCountdown.setCount(-1);	// 타이머 태스크의 카운트가 -1이면 아무것도 하지 않는다. 
+		timerCountdown.setDrawCount(-1);;	// 타이머 태스크의 카운트가 -1이면 아무것도 하지 않는다. 
 		isThisPlayerChooseCard = true;
 		myCurrentBattleCard = index;
 		isMyBattleCardPossible[index] = false;
@@ -296,7 +355,7 @@ public class GUIClient extends JFrame {
 		if(otherBattleCardIndex >= 5) {
 			return;
 		}
-		otherPlayerAndCard[otherBattleCardIndex] = playerName + " " + String.valueOf(battleCard);
+		otherPlayerAndCard[otherBattleCardIndex++] = playerName + ": " + String.valueOf(battleCard);
 //		otherBattleCard[otherBattleCardIndex++] = battleCard;
 //		otherBattleCardIndex++;
 		
@@ -312,6 +371,18 @@ public class GUIClient extends JFrame {
 		int[] activeBattleCard = Arrays.copyOf(allPlayerCard, allPlayerCard.length);
 		int battleCardAgg = 0;			// 유효한 배틀카드 총합
 		int minBattleCard = 8;
+		
+		String otherPlayerAndCardText = "";
+		for(int i=0; i < otherBattleCardIndex - 1; i++) {
+			otherPlayerAndCardText = otherPlayerAndCardText + otherPlayerAndCard[i] + " ";
+		}
+		// 모든 사람의 카드 공개
+		setOtherPlayersCard(otherPlayerAndCardText);
+		
+		if(myCurrentBattleCard == 0) {	// 내 카드가 0이면 무효화.
+			isMyBattleCardActive = false;
+		}
+		
 		for(int i=0; i<5; i++) {		// 내 카드와 다른 사람들이 낸 카드 비교. 그리고 다른 사람이 낸 카드들 끼리도 비교.
 			int tmp = allPlayerCard[i];
 			if(tmp == myCurrentBattleCard) {
@@ -335,21 +406,30 @@ public class GUIClient extends JFrame {
 			}
 		}
 		
-		if(battleCardAgg > currentMonster.getPower()) {	// 승리 !!
+		CMInteractionInfo interInfo = m_clientStub.getCMInfo().getInteractionInfo();
+		CMUser myself = interInfo.getMyself();
+		CMUserEvent use = new CMUserEvent();
+		
+		if(battleCardAgg >= currentMonster.getPower()) {	// 승리 !!
 			if(isMyBattleCardActive) {
-				if( myCurrentBattleCard < minBattleCard ) {	// 내 카드가 가장 작다면 보상 받는다.
+				if( myCurrentBattleCard < minBattleCard ) {	// 내 카드가 가장 작다면 보상 받는다. 내가 이기면 내가 승리 Event 송출.
+					String winGems = myself.getName() + " wins\nRed Gems: " + currentMonster.getRedGem() 
+						+ "\nYellow Gems: " + currentMonster.getYellowGem() + "\nBlue Gems: " + currentMonster.getBlueGem()+"\n";
 					this.myRedGem += currentMonster.getRedGem();
 					this.myYellowGem += currentMonster.getYellowGem();
 					this.myBlueGem +=  currentMonster.getBlueGem();
+					
+					use.setStringID("Win Gems");
+					use.setHandlerSession(myself.getCurrentSession());
+					use.setHandlerGroup(myself.getCurrentGroup());
+					use.setEventField(CMInfo.CM_INT, "Num Of Gems", winGems);
+					printMessage(winGems);
+					m_clientStub.cast(use, myself.getCurrentSession(), myself.getCurrentGroup());
+					
 				}
 			}
-		} else {	// 패배
+		} else {	// 패배. 내가 지면 패배 Event 송출.
 			if(isMyBattleCardActive == false || myCurrentBattleCard < minBattleCard) {
-//				loseGems();
-				CMInteractionInfo interInfo = m_clientStub.getCMInfo().getInteractionInfo();
-				CMUser myself = interInfo.getMyself();
-				CMUserEvent use = new CMUserEvent();
-//				CMDummyEvent due = new CMDummyEvent();
 				int maxNumOfGem = this.myRedGem;	// 세 보석 종류 중 가장 많은 수의 보석 개수.
 				int maxGemIndex = 4;				// 세 보석 종류 중 가장 많은 수의 보석. 3 bit로 bit-wise 계산. 4는 빨강, 2는 노랑, 1은 파랑.
 				
@@ -370,7 +450,6 @@ public class GUIClient extends JFrame {
 					use.setStringID("Lose Red Gems");
 					use.setHandlerSession(myself.getCurrentSession());
 					use.setHandlerGroup(myself.getCurrentGroup());
-//					use.setDummyInfo("=========TEST MESSAGE==========");		// 여기에 보낼 메세지 입력 !!!!!
 					use.setEventField(CMInfo.CM_INT, "Num Of Red Gems", String.valueOf(this.myRedGem));
 					m_clientStub.cast(use, myself.getCurrentSession(), myself.getCurrentGroup());
 					
@@ -407,9 +486,10 @@ public class GUIClient extends JFrame {
 					}
 					this.myBlueGem = 0;
 				}
-				use = null;
 			}
 		}
+		use = null;
+		setMyScore("Red Gems: " + myRedGem + "\tYellow Gems: " + myYellowGem + "\tBlue Gems: " + myBlueGem);
 	}
 	
 	public int getScore() {		// 보석 양으로 점수 합산.
@@ -425,6 +505,54 @@ public class GUIClient extends JFrame {
 		score = (minNumOfGem * 3) + this.myRedGem + this.myYellowGem + this.myBlueGem;
 		
 		return score;
+	}
+	
+	public void showMyScore() {		// 내 점수를 내 client에 입력하고 event로 뿌려주는 함수
+		CMInteractionInfo interInfo = m_clientStub.getCMInfo().getInteractionInfo();
+		CMUser myself = interInfo.getMyself();
+		
+		CMUserEvent use = new CMUserEvent();
+		use.setStringID("Show score");
+		use.setEventField(CMInfo.CM_STR, "userName", myself.getName());
+		use.setEventField(CMInfo.CM_INT, "Score", String.valueOf(myAggScore));
+		m_clientStub.cast(use, myself.getCurrentSession(), myself.getCurrentGroup());
+		use = null;
+		
+		showAllScore(myself.getName(), myAggScore);
+	}
+	
+	public void showAllScore(String userName, int score) {	// 게임이 다 끝나고 마지막 결과 보여주는 함수. 이벤트 핸들러가 부른다.
+
+		if(otherPlayerEventCount >= numOfPlayer - 1) {	// 마지막에 입력한 정보는 카운트가 전체 플레이어 수 -1 일 때 입력하게 된다.
+			otherPlayerName[otherPlayerEventCount] = userName;
+			otherPlayerScore[otherPlayerEventCount] = score;
+			int index = otherPlayerEventCount;
+			int tmp, j;	// 정렬에 쓸 변수
+			String tmpStr;	// 정렬에 쓰고 임시로 쓰는 스트링.
+			String[] otherPlayerNameSortedByHighScore = Arrays.copyOf(otherPlayerName, otherPlayerName.length);
+			int[] otherPlayerScoreSortedByHighScore = Arrays.copyOf(otherPlayerScore, otherPlayerScore.length);
+			for(int i = 1; i < index; i++) {	// 삽입 정렬
+				tmp = otherPlayerScoreSortedByHighScore[i];
+				tmpStr = otherPlayerNameSortedByHighScore[i];
+				for(j = i-1; j>=0 && otherPlayerScoreSortedByHighScore[j]>tmp; j--) {
+					otherPlayerScoreSortedByHighScore[j+1] = otherPlayerScoreSortedByHighScore[j];
+					otherPlayerNameSortedByHighScore[j+1] = otherPlayerNameSortedByHighScore[j];
+				}
+				otherPlayerScoreSortedByHighScore[j+1] = tmp;
+				otherPlayerNameSortedByHighScore[j+1] = tmpStr;
+			}
+
+			tmpStr = "\n=========== Game Result ===========\n";
+			for(int i=0; i<index; i++) {
+				tmpStr = tmpStr + (i+1) + ". " + otherPlayerNameSortedByHighScore[i] + ": " + otherPlayerScoreSortedByHighScore[i] + "점\n";
+			}
+			printMessage(tmpStr);
+			
+		} else {	// 플레이어 정보를 하나씩 입력할 때마다 카운트가 오른다.
+			otherPlayerName[otherPlayerEventCount] = userName;
+			otherPlayerScore[otherPlayerEventCount] = score;
+			otherPlayerEventCount++;
+		}
 	}
 	
 	private void addStylesToDocument(StyledDocument doc)
@@ -520,6 +648,8 @@ public class GUIClient extends JFrame {
 				setMyBattleCard(6);
 			} else if(button.getText().equals("7")) {
 				setMyBattleCard(7);
+			} else if(button.getText().equals("Game Start")) {		// 게임 시작 혹은 준비 버튼
+//				startButton.setText("STARTTT");
 			}
 			
 			myChatMessage.requestFocus();

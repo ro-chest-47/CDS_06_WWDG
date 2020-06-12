@@ -53,26 +53,34 @@ public class GUIClientEventHandler implements CMAppEventHandler{
 			int battleCard = Integer.parseInt(ue.getEventField(CMInfo.CM_INT, "battleCard"));
 			m_client.setOtherBattleCard(playerName, battleCard);
 			
+		} else if(ue.getStringID().equals("Win Gems")) {
+			int numOfGems = Integer.parseInt(ue.getEventField(CMInfo.CM_INT, "Num Of Gems"));
+			printMessage(ue.getSender() + " wins " + numOfGems);
+			
 		} else if(ue.getStringID().equals("Lose Red Gems")) {
 			int numOfRedGems = Integer.parseInt(ue.getEventField(CMInfo.CM_INT, "Num Of Red Gems"));
+			printMessage(ue.getSender() + " loses " + numOfRedGems + " Red Gems.\n");
 			if(m_client.getCurrentMonster().isNextMonsterExist()) {
 				m_client.getCurrentMonster().getNextMonster().plusGems(numOfRedGems, 0, 0);
 			}
 			
 		} else if(ue.getStringID().equals("Lose Yellow Gems")) {
 			int numOfYellowGems = Integer.parseInt(ue.getEventField(CMInfo.CM_INT, "Num Of Yellow Gems"));
+			printMessage(ue.getSender() + " loses " + numOfYellowGems + " Yellow Gems.\n");
 			if(m_client.getCurrentMonster().isNextMonsterExist()) {
 				m_client.getCurrentMonster().getNextMonster().plusGems(0, numOfYellowGems, 0);
 			}
 			
 		} else if(ue.getStringID().equals("Lose Blue Gems")) {
 			int numOfBlueGems = Integer.parseInt(ue.getEventField(CMInfo.CM_INT, "Num Of Blue Gems"));
+			printMessage(ue.getSender() + " loses " + numOfBlueGems + " Blue Gems.\n");
 			if(m_client.getCurrentMonster().isNextMonsterExist()) {
 				m_client.getCurrentMonster().getNextMonster().plusGems(0, 0, numOfBlueGems);
 			}
 			
-		} else {
-			
+		} else if(ue.getStringID().equals("Show score")){
+			int score = Integer.parseInt(ue.getEventField(CMInfo.CM_INT, "Score"));
+			m_client.showAllScore(ue.getSender(), score);
 		}
 	}
 

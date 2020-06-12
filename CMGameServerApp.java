@@ -57,7 +57,7 @@ public class CMGameServerApp {
 		
 		use.setHandlerSession(destSessionName);
 		use.setHandlerGroup(destGroupName);
-//		due.setDummyInfo("=========TEST MESSAGE==========");		// 여기에 보낼 메세지 입력 !!!!!
+//		due.setDummyInfo("=========TEST MESSAGE==========");		
 		m_serverStub.cast(use, destSessionName, destGroupName);
 //		due = null;
 		use = null;
