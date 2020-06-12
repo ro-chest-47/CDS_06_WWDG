@@ -323,6 +323,9 @@ public class GUIClient extends JFrame {
 	}
 	
 	public void setMyBattleCard(int index) {		// index가 내가 낸 배틀 카드. 0번은 무효, 1~7 까지 있다.
+		if(isThisPlayerChooseCard) {
+			return;
+		}
 		if(index != 0) { // index == 0 인 카드는 무효 카드.
 			if(isMyBattleCardPossible[index] == false) {
 				return;
