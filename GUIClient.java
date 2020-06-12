@@ -246,6 +246,9 @@ public class GUIClient extends JFrame {
 	}
 	
 	public void setMyCardButtonEnable(int cardIndex, boolean buttonSwitch) {
+		if(cardIndex == 0) {		// 0번 버튼은 "선택" 버튼이라서 0번은 안된다.
+			return;
+		}
 		myBattleCards[cardIndex].setEnabled(buttonSwitch);
 	}
 	
