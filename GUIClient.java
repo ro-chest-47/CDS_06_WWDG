@@ -245,6 +245,10 @@ public class GUIClient extends JFrame {
 		myScore.setText(text);
 	}
 	
+	public void setMyCardButtonEnable(int cardIndex, boolean buttonSwitch) {
+		myBattleCards[cardIndex].setEnabled(buttonSwitch);
+	}
+	
 	public void proceedGame() {		// 게임 시작. 서버에서는 게임 시작 전에 monster order를 보내주어야 한다.
 		myRedGem = 0;
 		myYellowGem = 0;
@@ -267,9 +271,11 @@ public class GUIClient extends JFrame {
 		
 		
 		while(stageNum < 15) {
+			
 			if((stageNum % 5) == 0) {	// stageNum % 5 == 0 이면 카드 초기화 해주기
 				for(int i = 0; i<NUMOFBATTLECARD + 1; i++) {
 					isMyBattleCardPossible[i] = true;
+					setMyCardButtonEnable(i, true);
 				}
 			}
 			isThisPlayerChooseCard = false;
@@ -296,7 +302,9 @@ public class GUIClient extends JFrame {
 			
 			timerCountdown.setDrawCount(30);;	// 카운트다운 30초 설정.
 			// 1분 동안 카드 안 냈으면 무효 카드 제출? 랜덤 제출? => 일단 무효 카드 제출로 설정. 카드 제출 할 때마다 알아서 카드 카운트를 세서 배틀 시작
+			setMyCardButtonEnable(myCurrentBattleCard, false);
 			stageNum++;
+			
 			if(currentMonster.isNextMonsterExist()) {	// 배틀 종료 후 만약 이 몬스터가 마지막 몬스터가 아니면 다음 몬스터 띄워주고 다시 1단계로.  
 				currentMonster = currentMonster.getNextMonster();
 			} else {					
@@ -328,7 +336,7 @@ public class GUIClient extends JFrame {
 			return;
 		}
 		if(index != 0) { // index == 0 인 카드는 무효 카드.
-			if(isMyBattleCardPossible[index] == false) {
+			if(isMyBattleCardPossible[index] == false) {	// 무효 카드를 제외하고, 이미 쓴 카드를 선택하면 제출할 수 없다.
 				return;
 			}
 		}
