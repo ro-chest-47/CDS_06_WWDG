@@ -26,7 +26,7 @@ public class GUIClient extends JFrame {
 	private JTextArea dungeonAndStageInfo = new JTextArea(3, 10);
 	private JTextArea monsterInfo = new JTextArea(30, 30);
 	private JTextArea myDrawableCards = new JTextArea(3, 30);
-	private JButton[] myBattleCards = new JButton[7];
+	private JButton[] myBattleCards = new JButton[8];
 	private JTextArea myScore = new JTextArea(3, 30);
 	private JButton startButton = new JButton("Game Start");
 	private JTextPane chatLog = new JTextPane();
@@ -86,8 +86,9 @@ public class GUIClient extends JFrame {
 		otherPlayersCard.setEditable(false);
 		dungeonAndStageInfo.setEditable(false);
 		monsterInfo.setEditable(false);
-		for(int i = 0; i < 7; i++) {
-			myBattleCards[i] = new JButton(Integer.toString(i + 1));
+		myBattleCards[0] = new JButton("선택");
+		for(int i = 1; i < 8; i++) {
+			myBattleCards[i] = new JButton(Integer.toString(i));
 		}
 		myDrawableCards.setEditable(false);
 		myScore.setEditable(false);
@@ -143,7 +144,7 @@ public class GUIClient extends JFrame {
 		pane.add(northPanel, BorderLayout.CENTER);
 		pane.add(southPanel, BorderLayout.SOUTH);
 		
-		for(int i=0; i<7; i++) {
+		for(int i=0; i<8; i++) {
 			myBattleCards[i].addActionListener(cmActionListener);
 		}
 		startButton.addActionListener(cmActionListener);
@@ -592,7 +593,7 @@ public class GUIClient extends JFrame {
 		myCardArea.setLayout(new BorderLayout());
 		cardPanel.setLayout(new FlowLayout());
 //		cardPanel.add(myBattleCardTopic);
-		for(int i = 0; i < 7; i++) {
+		for(int i = 0; i < 8; i++) {
 			cardPanel.add(myBattleCards[i]);
 		}
 		myCardArea.add(myBattleCardTopic, BorderLayout.WEST);
@@ -638,19 +639,21 @@ public class GUIClient extends JFrame {
 			// TODO Auto-generated method stub
 			JButton button = (JButton) e.getSource();
 			if(button.getText().equals("1")) {			// the battle cards
-				setMyBattleCard(1);
+				myCurrentBattleCard = 1;
 			} else if(button.getText().equals("2")) {
-				setMyBattleCard(2);
+				myCurrentBattleCard = 2;
 			} else if(button.getText().equals("3")) {
-				setMyBattleCard(3);
+				myCurrentBattleCard = 3;
 			} else if(button.getText().equals("4")) {
-				setMyBattleCard(4);
+				myCurrentBattleCard = 4;
 			} else if(button.getText().equals("5")) {
-				setMyBattleCard(5);
+				myCurrentBattleCard = 5;
 			} else if(button.getText().equals("6")) {
-				setMyBattleCard(6);
+				myCurrentBattleCard = 6;
 			} else if(button.getText().equals("7")) {
-				setMyBattleCard(7);
+				myCurrentBattleCard = 7;
+			} else if(button.getText().equals("선택")) {
+				setMyBattleCard(myCurrentBattleCard);
 			} else if(button.getText().equals("Game Start")) {		// 게임 시작 혹은 준비 버튼
 //				startButton.setText("STARTTT");
 			}
