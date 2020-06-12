@@ -49,7 +49,7 @@ public class CMGameServerApp {
 //		String eventMessage;
 		monsterOrder = shuffleMonsterOrder(monsterOrder, 1);
 		
-		use.setStringID("Monster Order");
+		use.setStringID("Set Monster Order");
 		for(int i=0; i<15; i++) {
 			use.setEventField(CMInfo.CM_INT, String.valueOf(i), String.valueOf(monsterOrder[i]));
 		}
@@ -78,6 +78,8 @@ public class CMGameServerApp {
 	
 	
 //	==================================== GAME SERVER PART =========================================//
+	
+	
 	
 	public void startServer() {
 		

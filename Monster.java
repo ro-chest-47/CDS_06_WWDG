@@ -40,10 +40,19 @@ public class Monster {
 		this.redGem = red;
 		this.yellowGem = yellow;
 		this.blueGem = blue;
+		this.nextMonster = null;
 	}
 	
 	public void setNextMonster(Monster next) {
 		this.nextMonster = next;
+	}
+	
+	public boolean isNextMonsterExist() {
+		if(nextMonster == null) {
+			return false;
+		} else {
+			return true;
+		}
 	}
 	
 	public Monster getNextMonster() {
