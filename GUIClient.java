@@ -1,6 +1,7 @@
 package gamePart;
 import java.util.Timer;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.awt.*;
 import java.awt.event.*;
 //import java.awt.Color.*;
@@ -12,8 +13,10 @@ import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 
 import kr.ac.konkuk.ccslab.cm.entity.CMMember;
+import kr.ac.konkuk.ccslab.cm.entity.CMSessionInfo;
 import kr.ac.konkuk.ccslab.cm.entity.CMUser;
 import kr.ac.konkuk.ccslab.cm.event.CMDummyEvent;
+import kr.ac.konkuk.ccslab.cm.event.CMSessionEvent;
 import kr.ac.konkuk.ccslab.cm.event.CMUserEvent;
 import kr.ac.konkuk.ccslab.cm.info.CMInfo;
 import kr.ac.konkuk.ccslab.cm.info.CMInteractionInfo;
@@ -34,10 +37,10 @@ public class GUIClient extends JFrame {
 	
 	private JButton enterButton = new JButton("Enter");	//
 	private JButton loginButton = new JButton("Log in");
-	private JButton enterSession1Button = new JButton("Session 1");
-	private JButton enterSession2Button = new JButton("Session 2");
-	private JButton enterSession3Button = new JButton("Session 3");
-	private JTextArea userInfoBySessions = new JTextArea(4, 50);
+	private JButton showSessionInfo = new JButton("Session Info");
+//	private JButton showSession2Button = new JButton("Session 2");
+//	private JButton showSession3Button = new JButton("Session 3");
+	private JTextArea userInfoBySessions = new JTextArea(5, 50);
 	
 	private MyMouseListener cmMouseListener;
 	private CMClientStub m_clientStub;
@@ -122,15 +125,16 @@ public class GUIClient extends JFrame {
 		southPanelTop.add(loginButton);
 		JPanel southPanelCenter = new JPanel();
 		southPanelCenter.setLayout(new FlowLayout());
-		southPanelCenter.add(enterSession1Button);
-		southPanelCenter.add(enterSession2Button);
-		southPanelCenter.add(enterSession3Button);
-		JPanel southPanelBottom = new JPanel();
-		southPanelBottom.add(userInfoBySessions);
+		southPanelCenter.add(showSessionInfo);
+		southPanelCenter.add(userInfoBySessions);
+//		southPanelCenter.add(showSession2Button);
+//		southPanelCenter.add(showSession3Button);
+//		JPanel southPanelBottom = new JPanel();
+//		southPanelBottom.add(userInfoBySessions);
 		
 		southPanel.add(southPanelTop);
 		southPanel.add(southPanelCenter);
-		southPanel.add(southPanelBottom);
+//		southPanel.add(southPanelBottom);
 		
 		JPanel northPanel = new JPanel();
 //		northPanel.setLayout(new BorderLayout());
@@ -151,9 +155,9 @@ public class GUIClient extends JFrame {
 		startButton.addActionListener(cmActionListener);
 		enterButton.addActionListener(cmActionListener);
 		loginButton.addActionListener(cmActionListener);
-		enterSession1Button.addActionListener(cmActionListener);
-		enterSession2Button.addActionListener(cmActionListener);
-		enterSession3Button.addActionListener(cmActionListener);
+		showSessionInfo.addActionListener(cmActionListener);
+//		showSession2Button.addActionListener(cmActionListener);
+//		showSession3Button.addActionListener(cmActionListener);
 		
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setSize(1000, 600);
@@ -241,6 +245,10 @@ public class GUIClient extends JFrame {
 	
 	public void setMonsterInfo(String text) {
 		monsterInfo.setText(text);
+	}
+	
+	public void setUserInfoBySessions(String text) {
+		userInfoBySessions.setText(text);
 	}
 	
 	public void setMyScore(String text) {
@@ -617,7 +625,7 @@ public class GUIClient extends JFrame {
 
 			tmpStr = "\n=========== Game Result ===========\n";
 			for(int i=0; i<index; i++) {
-				tmpStr = tmpStr + (i+1) + ". " + otherPlayerNameSortedByHighScore[i] + ": " + otherPlayerScoreSortedByHighScore[i] + "점\n";
+				tmpStr = tmpStr + (i+1) + "등 " + otherPlayerNameSortedByHighScore[i] + ": " + otherPlayerScoreSortedByHighScore[i] + "점\n";
 			}
 			printMessage(tmpStr);
 			otherPlayerEventCount = 0;
@@ -726,6 +734,22 @@ public class GUIClient extends JFrame {
 				setMyBattleCard(myCurrentBattleCard);
 			} else if(button.getText().equals("Game Start")) {		// 게임 시작 혹은 준비 버튼
 //				startButton.setText("STARTTT");
+			} else if(button.getText().equals("Session Info")) {
+				String resultText = "Name\t    Number Of User"
+						+ "\n=====================================================\n";
+				CMSessionEvent se = null;
+				se = m_clientStub.syncRequestSessionInfo();
+				if(se == null) {
+					resultText = resultText + "Failed to get session-info!!\n";
+					return;
+				}
+				Iterator<CMSessionInfo> iter = se.getSessionInfoList().iterator();
+//				int sessionNum=1;
+				while(iter.hasNext()) {
+					CMSessionInfo itInfo = iter.next();
+					resultText = resultText + itInfo.getSessionName() + "\t" + itInfo.getUserNum() + "\n";
+				}
+				setUserInfoBySessions(resultText);
 			}
 			
 			myChatMessage.requestFocus();
