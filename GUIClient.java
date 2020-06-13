@@ -735,16 +735,18 @@ public class GUIClient extends JFrame {
 			} else if(button.getText().equals("Game Start")) {		// 게임 시작 혹은 준비 버튼
 //				startButton.setText("STARTTT");
 			} else if(button.getText().equals("Session Info")) {
-				String resultText = "Name\t    Number Of User"
+				String resultText = "Name\t   Number Of User"
 						+ "\n=====================================================\n";
 				CMSessionEvent se = null;
 				se = m_clientStub.syncRequestSessionInfo();
-				if(se == null) {
+				if(se == null) {		
+					// 서버에 제대로 연결이 안 되어 있으면 Null Pointer Exception이 발생할 수 는 있으나 멈추지는 않는다.
+					// 계속 버튼 눌러보면 실패 메세지를 제대로 출력해준다.
 					resultText = resultText + "Failed to get session-info!!\n";
+					setUserInfoBySessions(resultText);
 					return;
 				}
 				Iterator<CMSessionInfo> iter = se.getSessionInfoList().iterator();
-//				int sessionNum=1;
 				while(iter.hasNext()) {
 					CMSessionInfo itInfo = iter.next();
 					resultText = resultText + itInfo.getSessionName() + "\t" + itInfo.getUserNum() + "\n";
