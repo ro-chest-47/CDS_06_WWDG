@@ -64,11 +64,11 @@ public class GUIClient extends JFrame {
 	private boolean isThisPlayerChooseCard;
 	private boolean[] isMyBattleCardPossible;
 	private String[] otherPlayerAndCard;
-//	private int[] otherBattleCard;
+	private int[] otherBattleCard;
 	private int otherBattleCardIndex;
 	private int myCurrentBattleCard;
 	private boolean isMyBattleCardActive;
-	private int[] allPlayerCard;
+//	private int[] allPlayerCard;
 	private int allPlayerCardCount;
 	private int myRedGem;
 	private int myYellowGem;
@@ -226,10 +226,10 @@ public class GUIClient extends JFrame {
 		// 한 스테이지마다 초기화 해줘야 하는 것들
 		isThisPlayerChooseCard = false;
 		otherPlayerAndCard = new String[] {"", "", "", "", ""};
-//		otherBattleCard = new int[] {0, 0, 0, 0, 0};
-		allPlayerCard = new int[] {0, 0, 0, 0, 0};
-		allPlayerCardCount = 0;
+		otherBattleCard = new int[] {0, 0, 0, 0, 0};
 		otherBattleCardIndex = 0;
+//		allPlayerCard = new int[] {0, 0, 0, 0, 0};
+		allPlayerCardCount = 0;
 		myCurrentBattleCard = 0;
 		isMyBattleCardActive = true;
 		otherPlayerFinishCount = 0;
@@ -248,7 +248,7 @@ public class GUIClient extends JFrame {
 	}
 
 	public void linkMonsterOrder(int[] monOrder) {
-		for(int i = 0; i < NUMOFMONSTER; i++) {
+		for(int i = 0; i < NUMOFMONSTER - 1; i++) {
 			monster[monOrder[i]].setNextMonster(monster[monOrder[i+1]]);
 		}
 		this.currentMonster = monster[monOrder[0]];
@@ -290,8 +290,13 @@ public class GUIClient extends JFrame {
 		myRedGem = 0;
 		myYellowGem = 0;
 		myBlueGem = 0;
-		numOfPlayer = m_clientStub.getGroupMembers().getMemberNum() + 1;		
+//		numOfPlayer = m_clientStub.getGroupMembers().getMemberNum() + 1;		
 		// getMemberNum()은 나를 제외한 그룹 인원 수를 반환한다.
+		
+		// Test Code
+		numOfPlayer = 1;
+		
+		
 		stageNum = 0;
 		myAggScore = 0;
 		otherPlayerEventCount = 0;
@@ -310,12 +315,12 @@ public class GUIClient extends JFrame {
 		isThisPlayerChooseCard = false;
 		for(int i=0; i<5; i++) {
 			otherPlayerAndCard[i] = "";
-			allPlayerCard[i] = 0;
+			otherBattleCard[i] = 0;
+//			allPlayerCard[i] = 0;
 		}
 		otherBattleCardIndex = 0;
 		myCurrentBattleCard = 0;
 		isMyBattleCardActive = true;
-//		allPlayerCard = new int[] {0, 0, 0, 0, 0};
 		allPlayerCardCount = 0;
 		otherPlayerFinishCount = 0;
 		
@@ -351,6 +356,7 @@ public class GUIClient extends JFrame {
 	
 	public void proceedStage() {
 		if(currentMonster.isNextMonsterExist()) {		// 다음 몬스터가 있으면 Stage 진행
+			stageNum++;
 			if(stageNum % 5 == 0) {		// stage가 5로 나누어 떨어지면 다음 던전 입성이므로 배틀 카드 갱신.
 				for(int i = 0; i<NUMOFBATTLECARD + 1; i++) {
 					isMyBattleCardPossible[i] = true;
@@ -360,23 +366,18 @@ public class GUIClient extends JFrame {
 			
 			for(int i=0; i<5; i++) {
 				otherPlayerAndCard[i] = "";
-				allPlayerCard[i] = 0;
+				otherBattleCard[i] = 0;
 			}
 			otherBattleCardIndex = 0;
 			myCurrentBattleCard = 0;
 			isMyBattleCardActive = true;
 			allPlayerCardCount = 0;
-			stageNum++;
 			
 			setDungeonAndStageInfo("Stage: " + (stageNum + 1));
 			setMyScore("Red Gems: " + myRedGem + "\tYellow Gems: " + myYellowGem + "\tBlue Gems: " + myBlueGem);
 			
 			currentMonster = currentMonster.getNextMonster();
 			String currentMonsterInfoText = currentMonster.getName()
-					+ "\nPower: " + currentMonster.getPower() + "\tRed Gem: " + currentMonster.getRedGem() 
-					+ "\tYellow Gem: " + currentMonster.getYellowGem() + "\tBlue Gem: " + currentMonster.getBlueGem();
-			setMonsterInfo(currentMonsterInfoText);
-			currentMonsterInfoText = currentMonster.getName()
 					+ "\nPower: " + currentMonster.getPower() + "\tRed Gem: " + currentMonster.getRedGem() 
 					+ "\tYellow Gem: " + currentMonster.getYellowGem() + "\tBlue Gem: " + currentMonster.getBlueGem();
 			timerCountdown.setInfoShowCount(10, currentMonsterInfoText);	
@@ -415,14 +416,16 @@ public class GUIClient extends JFrame {
 			if(isMyBattleCardPossible[index] == false) {	// 무효 카드를 제외하고, 이미 쓴 카드를 선택하면 제출할 수 없다.
 				return;
 			}
+			setMyCardButtonEnable(index, false);
 		}
+		
 		timerCountdown.setDrawCount(-1);	// 타이머 태스크의 카운트가 -1이면 아무것도 하지 않는다. 
 		isThisPlayerChooseCard = true;
 		myCurrentBattleCard = index;
 		isMyBattleCardPossible[index] = false;
-		allPlayerCard[allPlayerCardCount++] = index;		// 모든 플레이어의 카드를 등록하는 배열
-//		allPlayerCardCount++;
-//		CMMember groupMembers = m_clientStub.getGroupMembers();
+//		allPlayerCard[allPlayerCardCount++] = index;		// 모든 플레이어의 카드를 등록하는 배열
+		allPlayerCardCount++;
+
 		CMInteractionInfo interInfo = m_clientStub.getCMInfo().getInteractionInfo();
 		CMUser myself = interInfo.getMyself();
 		
@@ -443,12 +446,12 @@ public class GUIClient extends JFrame {
 		if(otherBattleCardIndex >= 5) {
 			return;
 		}
-		otherPlayerAndCard[otherBattleCardIndex++] = playerName + ": " + String.valueOf(battleCard);
-//		otherBattleCard[otherBattleCardIndex++] = battleCard;
-//		otherBattleCardIndex++;
-		
-		allPlayerCard[allPlayerCardCount++] = battleCard;
-//		allPlayerCardCount++;
+		otherPlayerAndCard[otherBattleCardIndex] = playerName + ": " + String.valueOf(battleCard);
+		otherBattleCard[otherBattleCardIndex] = battleCard;
+		otherBattleCardIndex++;
+
+//		allPlayerCard[allPlayerCardCount++] = battleCard;
+		allPlayerCardCount++;
 		
 		if(numOfPlayer == allPlayerCardCount) {	// 카드가 뽑힌 수와 플레이어 수가 같으면 배틀 진행
 			battleWithMonster();
@@ -456,7 +459,7 @@ public class GUIClient extends JFrame {
 	}
 	
 	public void battleWithMonster() {
-		int[] activeBattleCard = Arrays.copyOf(allPlayerCard, allPlayerCard.length);
+		int[] activeBattleCard = Arrays.copyOf(otherBattleCard, otherBattleCard.length);	// 나를 제외한 유효한 카드를 모은 배열.
 		int battleCardAgg = 0;			// 유효한 배틀카드 총합
 		int minBattleCard = 8;
 		
@@ -472,20 +475,25 @@ public class GUIClient extends JFrame {
 		}
 		
 		for(int i=0; i<5; i++) {		// 내 카드와 다른 사람들이 낸 카드 비교. 그리고 다른 사람이 낸 카드들 끼리도 비교.
-			int tmp = allPlayerCard[i];
+			int tmp = otherBattleCard[i];
 			if(tmp == myCurrentBattleCard) {
 				isMyBattleCardActive = false;
+				activeBattleCard[i] = -1;
 			}
 			
 			for(int j=i+1; j<5; j++) {
-				if(tmp == allPlayerCard[j]) {
+				if(tmp == otherBattleCard[j]) {
 					activeBattleCard[j] = -1;
 					activeBattleCard[i] = -1;
 				}
 			}
 		}
 		
-		for(int i = 0; i < 5; i++) {	// 유효한 카드의 전투력 합산.
+		if(isMyBattleCardActive) {	// if my battle card is active, add is to battle card Agg
+			battleCardAgg += myCurrentBattleCard;
+		}
+		
+		for(int i = 0; i < 5; i++) {	// 나를 제외한 유효한 카드의 전투력 합산.
 			if(activeBattleCard[i] > 0) {
 				battleCardAgg += activeBattleCard[i];
 				if(minBattleCard > activeBattleCard[i]) {	// 내 카드를 제외한 유효한 카드 중에서 가장 숫자가 작은 카드 선택
@@ -869,6 +877,10 @@ public class GUIClient extends JFrame {
 //		frame.setVisible(true);
 		GUIClient app = new GUIClient();
 		
+		// Test Code //
+		int[] testOrder = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14};
+		app.linkMonsterOrder(testOrder);
+		app.proceedGame();
 	}
 
 }

@@ -27,7 +27,7 @@ public class Monster {
 	}
 	
 	public Monster(int power, int red, int yellow, int blue) {
-		createMonster("no name", power, red, yellow, blue);
+		createMonster("Monster", power, red, yellow, blue);
 	}
 	
 	public Monster(String name, int power, int red, int yellow, int blue) {

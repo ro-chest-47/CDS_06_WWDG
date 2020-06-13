@@ -33,7 +33,6 @@ public class TimerCountdown extends TimerTask{
 			cardDrawCount--;
 		} else if(cardDrawCount == 0) {
 			client.setMyBattleCard(0);	// 내 배틀카드를 무효한 카드로 제출.
-//			isCardDrawCount = false;
 			cardDrawCount--;
 		} else if(cardDrawCount <= -1) {		// 내가 카드를 내면서 count를 -1로 만들기때문에 아무것도 하지 않는다.
 			// do nothing
