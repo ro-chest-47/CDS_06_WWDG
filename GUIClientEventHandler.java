@@ -1,4 +1,4 @@
-package gamePart;
+//package gamePart;
 import java.util.Iterator;
 
 import kr.ac.konkuk.ccslab.cm.event.CMEvent;

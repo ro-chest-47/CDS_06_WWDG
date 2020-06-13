@@ -1,4 +1,4 @@
-package gamePart;
+//package gamePart;
 
 import java.util.TimerTask;
 
@@ -10,7 +10,7 @@ public class TimerCountdown extends TimerTask{
 	private GUIClient client;
 	
 	public TimerCountdown(GUIClient client) {
-		this.cardDrawCount = -1;		// count°¡ -1ÀÌ¾î¾ß ¾Æ¹« ÀÏµµ ÇÏÁö ¾Ê´Â´Ù.
+		this.cardDrawCount = -1;		// countï¿½ï¿½ -1ï¿½Ì¾ï¿½ï¿½ ï¿½Æ¹ï¿½ ï¿½Ïµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
 		this.infoShowCount = -1;
 		this.monsterInfo = "";
 		this.isCardDrawCount = false;
@@ -32,10 +32,10 @@ public class TimerCountdown extends TimerTask{
 		if(cardDrawCount > 0) {
 			cardDrawCount--;
 		} else if(cardDrawCount == 0) {
-			client.setMyBattleCard(0);	// ³» ¹èÆ²Ä«µå¸¦ ¹«È¿ÇÑ Ä«µå·Î Á¦Ãâ.
+			client.setMyBattleCard(0);	// ï¿½ï¿½ ï¿½ï¿½Æ²Ä«ï¿½å¸¦ ï¿½ï¿½È¿ï¿½ï¿½ Ä«ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
 //			isCardDrawCount = false;
 			cardDrawCount--;
-		} else if(cardDrawCount <= -1) {		// ³»°¡ Ä«µå¸¦ ³»¸é¼­ count¸¦ -1·Î ¸¸µé±â¶§¹®¿¡ ¾Æ¹«°Íµµ ÇÏÁö ¾Ê´Â´Ù.
+		} else if(cardDrawCount <= -1) {		// ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½å¸¦ ï¿½ï¿½ï¿½é¼­ countï¿½ï¿½ -1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½â¶§ï¿½ï¿½ï¿½ï¿½ ï¿½Æ¹ï¿½ï¿½Íµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
 			// do nothing
 		}
 		

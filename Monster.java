@@ -1,4 +1,4 @@
-package gamePart;
+//package gamePart;
 import java.security.SecureRandom;
 
 public class Monster {
