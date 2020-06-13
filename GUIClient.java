@@ -37,7 +37,12 @@ public class GUIClient extends JFrame {
 	
 	private JButton enterButton = new JButton("Enter");	//
 	private JButton loginButton = new JButton("Log in");
-	private JButton showSessionInfo = new JButton("Session Info");
+	private JButton sessionEnter = new JButton("Enter Session");
+	private JButton sessionInfo = new JButton("Session Info");
+	private JRadioButton session[] 
+			= { new JRadioButton("Session 1"), new JRadioButton("Session 2"), new JRadioButton("Session 3") }; 	// {"Session 1", "Session 2", "Session 3"}
+	private ButtonGroup sessionButtonGroup = new ButtonGroup();
+	private int sessionIndex;
 //	private JButton showSession2Button = new JButton("Session 2");
 //	private JButton showSession3Button = new JButton("Session 3");
 	private JTextArea userInfoBySessions = new JTextArea(5, 50);
@@ -125,16 +130,25 @@ public class GUIClient extends JFrame {
 		southPanelTop.add(loginButton);
 		JPanel southPanelCenter = new JPanel();
 		southPanelCenter.setLayout(new FlowLayout());
-		southPanelCenter.add(showSessionInfo);
-		southPanelCenter.add(userInfoBySessions);
+		southPanelCenter.add(sessionEnter);
+		sessionButtonGroup.add(session[0]);
+		sessionButtonGroup.add(session[1]);
+		sessionButtonGroup.add(session[2]);
+//		southPanelCenter.add(sessionButtonGroup);
+		southPanelCenter.add(session[0]);
+		southPanelCenter.add(session[1]);
+		southPanelCenter.add(session[2]);
+//		southPanelCenter.add(userInfoBySessions);
 //		southPanelCenter.add(showSession2Button);
 //		southPanelCenter.add(showSession3Button);
-//		JPanel southPanelBottom = new JPanel();
-//		southPanelBottom.add(userInfoBySessions);
+		JPanel southPanelBottom = new JPanel();
+		southPanelBottom.setLayout(new FlowLayout());
+		southPanelBottom.add(sessionInfo);
+		southPanelBottom.add(userInfoBySessions);
 		
 		southPanel.add(southPanelTop);
 		southPanel.add(southPanelCenter);
-//		southPanel.add(southPanelBottom);
+		southPanel.add(southPanelBottom);
 		
 		JPanel northPanel = new JPanel();
 //		northPanel.setLayout(new BorderLayout());
@@ -155,9 +169,11 @@ public class GUIClient extends JFrame {
 		startButton.addActionListener(cmActionListener);
 		enterButton.addActionListener(cmActionListener);
 		loginButton.addActionListener(cmActionListener);
-		showSessionInfo.addActionListener(cmActionListener);
-//		showSession2Button.addActionListener(cmActionListener);
-//		showSession3Button.addActionListener(cmActionListener);
+		sessionEnter.addActionListener(cmActionListener);
+		session[0].addActionListener(cmActionListener);
+		session[1].addActionListener(cmActionListener);
+		session[2].addActionListener(cmActionListener);
+		sessionInfo.addActionListener(cmActionListener);
 		
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setSize(1000, 600);
@@ -177,6 +193,10 @@ public class GUIClient extends JFrame {
 				, new Monster(7, 3, 2, 0), new Monster(8, 0, 1, 4), new Monster(10, 3, 3, 0), new Monster(11, 2, 0, 4), new Monster(12, 2, 2, 0)
 				, new Monster(13, 1, 1, 2), new Monster(15, 2, 5, 0), new Monster(18, 1, 2, 2), new Monster(19, 2, 1, 2), new Monster(20, 3, 2, 2)};
 		
+		sessionIndex = 0;
+		session[0].setSelected(true);
+		session[1].setSelected(false);
+		session[2].setSelected(false);
 		
 		// 한 게임마다 초기화 해줘야 하는 것
 		monsterOrder = new int[NUMOFMONSTER];
@@ -715,26 +735,38 @@ public class GUIClient extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			// TODO Auto-generated method stub
-			JButton button = (JButton) e.getSource();
-			if(button.getText().equals("1")) {			// the battle cards
+//			JButton button = (JButton) e.getSource();
+			String s = e.getActionCommand();
+			if(s.equals("1")) {			// the battle cards
 				myCurrentBattleCard = 1;
-			} else if(button.getText().equals("2")) {
+			} else if(s.equals("2")) {
 				myCurrentBattleCard = 2;
-			} else if(button.getText().equals("3")) {
+			} else if(s.equals("3")) {
 				myCurrentBattleCard = 3;
-			} else if(button.getText().equals("4")) {
+			} else if(s.equals("4")) {
 				myCurrentBattleCard = 4;
-			} else if(button.getText().equals("5")) {
+			} else if(s.equals("5")) {
 				myCurrentBattleCard = 5;
-			} else if(button.getText().equals("6")) {
+			} else if(s.equals("6")) {
 				myCurrentBattleCard = 6;
-			} else if(button.getText().equals("7")) {
+			} else if(s.equals("7")) {
 				myCurrentBattleCard = 7;
-			} else if(button.getText().equals("선택")) {
+			} else if(s.equals("선택")) {
 				setMyBattleCard(myCurrentBattleCard);
-			} else if(button.getText().equals("Game Start")) {		// 게임 시작 혹은 준비 버튼
+			} else if(s.equals("Game Start")) {		// 게임 시작 혹은 준비 버튼
 //				startButton.setText("STARTTT");
-			} else if(button.getText().equals("Session Info")) {
+				
+			} else if(s.equals("Enter Session")) {
+				// Session Enter !!
+				// the session index variable is "sessionIndex (0~2)"
+			
+			} else if(s.equals("Session 1")) {
+				sessionIndex = 0;
+			} else if(s.equals("Session 2")) {
+				sessionIndex = 1;
+			} else if(s.equals("Session 3")) {
+				sessionIndex = 2;
+			} else if(s.equals("Session Info")) {
 				String resultText = "Name\t   Number Of User"
 						+ "\n=====================================================\n";
 				CMSessionEvent se = null;
