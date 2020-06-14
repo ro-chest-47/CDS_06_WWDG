@@ -2,6 +2,7 @@ package gamePart;
 import java.util.Iterator;
 
 import kr.ac.konkuk.ccslab.cm.event.CMEvent;
+import kr.ac.konkuk.ccslab.cm.event.CMInterestEvent;
 import kr.ac.konkuk.ccslab.cm.event.CMUserEvent;
 import kr.ac.konkuk.ccslab.cm.event.CMUserEventField;
 import kr.ac.konkuk.ccslab.cm.event.handler.CMAppEventHandler;
@@ -86,11 +87,26 @@ public class GUIClientEventHandler implements CMAppEventHandler{
 			m_client.battleFinish();
 		}
 	}
+	
+	private void processInterestEvent(CMEvent cme) {
+		CMInterestEvent ie = (CMInterestEvent) cme;
+		switch(ie.getID()) {
+		case CMInterestEvent.USER_TALK:
+			printMessage(ie.getUserName() + ": " + ie.getTalk() + "\n");
+			break;
+			
+		default:
+			return;
+		}
+	}
 
 	@Override
 	public void processEvent(CMEvent cme) {
 		// TODO Auto-generated method stub
 		switch(cme.getType()) {
+		case CMInfo.CM_INTEREST_EVENT:
+			processInterestEvent(cme);
+			break;
 		case CMInfo.CM_DUMMY_EVENT:
 			processDummyEvent(cme);
 			break;
