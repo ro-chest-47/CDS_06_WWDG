@@ -4,6 +4,10 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 //import java.awt.Color.*;
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -264,6 +268,8 @@ public class GUIClient extends JFrame {
 	}
 	
 	public void setMonsterInfo(String text) {
+
+		System.out.println("Set Monster Info:\n" + text);
 		monsterInfo.setText(text);
 	}
 	
@@ -290,6 +296,7 @@ public class GUIClient extends JFrame {
 		myRedGem = 0;
 		myYellowGem = 0;
 		myBlueGem = 0;
+		// Test Code
 //		numOfPlayer = m_clientStub.getGroupMembers().getMemberNum() + 1;		
 		// getMemberNum()은 나를 제외한 그룹 인원 수를 반환한다.
 		
@@ -767,7 +774,9 @@ public class GUIClient extends JFrame {
 			} else if(s.equals("Enter Session")) {
 				// Session Enter !!
 				// the session index variable is "sessionIndex (0~2)"
-			
+				
+				// Test Code
+				m_clientStub.joinSession("session1");
 			} else if(s.equals("Session 1")) {
 				sessionIndex = 0;
 			} else if(s.equals("Session 2")) {
@@ -810,7 +819,7 @@ public class GUIClient extends JFrame {
 				if(strText == null) {
 					return;
 				}
-				printMessage(strText + "\n");
+//				printMessage(strText + "\n");
 				m_clientStub.chat("/g", strText);
 				
 				input.setText("");
@@ -870,17 +879,64 @@ public class GUIClient extends JFrame {
 	}
 	
 	
+	// Test Code
+	public void testStartCM()
+	{
+		// get current server info from the server configuration file
+		String strCurServerAddress = null;
+		int nCurServerPort = -1;
+		String strNewServerAddress = null;
+		String strNewServerPort = null;
+		
+		strCurServerAddress = m_clientStub.getServerAddress();
+		nCurServerPort = m_clientStub.getServerPort();
+		
+		// ask the user if he/she would like to change the server info
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		System.out.println("========== start CM");
+		System.out.println("current server address: "+strCurServerAddress);
+		System.out.println("current server port: "+nCurServerPort);
+		
+		try {
+			System.out.print("new server address (enter for current value): ");
+			strNewServerAddress = br.readLine().trim();
+			System.out.print("new server port (enter for current value): ");
+			strNewServerPort = br.readLine().trim();
+
+			// update the server info if the user would like to do
+			if(!strNewServerAddress.isEmpty() && !strNewServerAddress.equals(strCurServerAddress))
+				m_clientStub.setServerAddress(strNewServerAddress);
+			if(!strNewServerPort.isEmpty() && Integer.parseInt(strNewServerPort) != nCurServerPort)
+				m_clientStub.setServerPort(Integer.parseInt(strNewServerPort));
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		boolean bRet = m_clientStub.startCM();
+		if(!bRet)
+		{
+			System.err.println("CM initialization error!");
+			return;
+		}
+		
+		int randomName = random.nextInt(300);
+		m_clientStub.loginCM(String.valueOf(randomName), "1234");
+//		m_clientStub.joinSession("session1");
+//		m_clientStub.changeGroup("g1");
+	}
 	
 	
 	public static void main(String[] args) {
 //		Frame frame;
 //		frame.setVisible(true);
 		GUIClient app = new GUIClient();
-		
+		app.testStartCM();
 		// Test Code //
 		int[] testOrder = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14};
-		app.linkMonsterOrder(testOrder);
-		app.proceedGame();
+//		app.linkMonsterOrder(testOrder);
+//		app.proceedGame();
 	}
 
 }

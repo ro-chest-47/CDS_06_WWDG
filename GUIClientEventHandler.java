@@ -51,14 +51,25 @@ public class GUIClientEventHandler implements CMAppEventHandler{
 			
 		} else if(ue.getStringID().equals("Set Battle Card")) {
 			String playerName = ue.getSender();
+			if(playerName.equals(m_client.getName())) {
+				return;
+			}
 			int battleCard = Integer.parseInt(ue.getEventField(CMInfo.CM_INT, "battleCard"));
 			m_client.setOtherBattleCard(playerName, battleCard);
 			
 		} else if(ue.getStringID().equals("Win Gems")) {
+			String playerName = ue.getSender();
+			if(playerName.equals(m_client.getName())) {
+				return;
+			}
 			int numOfGems = Integer.parseInt(ue.getEventField(CMInfo.CM_INT, "Num Of Gems"));
 			printMessage(ue.getSender() + " wins " + numOfGems);
 			
 		} else if(ue.getStringID().equals("Lose Red Gems")) {
+			String playerName = ue.getSender();
+			if(playerName.equals(m_client.getName())) {
+				return;
+			}
 			int numOfRedGems = Integer.parseInt(ue.getEventField(CMInfo.CM_INT, "Num Of Red Gems"));
 			printMessage(ue.getSender() + " loses " + numOfRedGems + " Red Gems.\n");
 			if(m_client.getCurrentMonster().isNextMonsterExist()) {
@@ -66,6 +77,10 @@ public class GUIClientEventHandler implements CMAppEventHandler{
 			}
 			
 		} else if(ue.getStringID().equals("Lose Yellow Gems")) {
+			String playerName = ue.getSender();
+			if(playerName.equals(m_client.getName())) {
+				return;
+			}
 			int numOfYellowGems = Integer.parseInt(ue.getEventField(CMInfo.CM_INT, "Num Of Yellow Gems"));
 			printMessage(ue.getSender() + " loses " + numOfYellowGems + " Yellow Gems.\n");
 			if(m_client.getCurrentMonster().isNextMonsterExist()) {
@@ -73,6 +88,10 @@ public class GUIClientEventHandler implements CMAppEventHandler{
 			}
 			
 		} else if(ue.getStringID().equals("Lose Blue Gems")) {
+			String playerName = ue.getSender();
+			if(playerName.equals(m_client.getName())) {
+				return;
+			}
 			int numOfBlueGems = Integer.parseInt(ue.getEventField(CMInfo.CM_INT, "Num Of Blue Gems"));
 			printMessage(ue.getSender() + " loses " + numOfBlueGems + " Blue Gems.\n");
 			if(m_client.getCurrentMonster().isNextMonsterExist()) {
@@ -80,10 +99,18 @@ public class GUIClientEventHandler implements CMAppEventHandler{
 			}
 			
 		} else if(ue.getStringID().equals("Show score")){
+			String playerName = ue.getSender();
+			if(playerName.equals(m_client.getName())) {
+				return;
+			}
 			int score = Integer.parseInt(ue.getEventField(CMInfo.CM_INT, "Score"));
 			m_client.showAllScore(ue.getSender(), score);
 			
 		} else if(ue.getStringID().equals("Battle Finish")) {
+			String playerName = ue.getSender();
+			if(playerName.equals(m_client.getName())) {
+				return;
+			}
 			m_client.battleFinish();
 		}
 	}

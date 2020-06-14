@@ -39,11 +39,13 @@ public class TimerCountdown extends TimerTask{
 		}
 		
 		if(infoShowCount > 0) {
+			System.out.println("Info Show Countdown...");
 			infoShowCount--;
 		} else if (infoShowCount == 0) {
 			client.setOtherPlayersCard("");
 			client.setMonsterInfo(monsterInfo);
 			client.setIsThisPlayerChooseCard(false);
+			System.out.println("Info Show Count Zero");
 			infoShowCount--;
 			
 		} else if (infoShowCount <= -1) {

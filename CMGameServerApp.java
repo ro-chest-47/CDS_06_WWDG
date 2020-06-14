@@ -3,7 +3,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.SecureRandom;
+import java.util.Scanner;
 
+import kr.ac.konkuk.ccslab.cm.entity.CMSessionInfo;
 import kr.ac.konkuk.ccslab.cm.event.CMDummyEvent;
 import kr.ac.konkuk.ccslab.cm.event.CMUserEvent;
 import kr.ac.konkuk.ccslab.cm.info.CMCommInfo;
@@ -15,21 +17,35 @@ import kr.ac.konkuk.ccslab.cm.stub.CMServerStub;
 public class CMGameServerApp {
 	private CMServerStub m_serverStub;
 	private CMGameServerAppEventHandler m_eventHandler;
-	
+	private boolean m_bRun;
 	
 	private SecureRandom random;
 	private int[] monsterOrder; 
 	
+	// Test Code
+	private int numOfPlayer;
+	
 	public CMGameServerApp() {
 		m_serverStub = new CMServerStub();
-		m_eventHandler = new CMGameServerAppEventHandler(m_serverStub);
-		
+		m_eventHandler = new CMGameServerAppEventHandler(m_serverStub, this);
+		m_bRun = true;
 		
 		random = new SecureRandom();
 		monsterOrder = new int[15];
 		for(int i=0; i<15; i++) {
 			monsterOrder[i] = i;
 		}
+		
+		// Test Code
+		numOfPlayer = 0;
+	}
+	
+	public int getNumOfPlayer() {
+		return this.numOfPlayer;
+	}
+	
+	public void setNumOfPlayer(int numOfPlayer) {
+		this.numOfPlayer = numOfPlayer;
 	}
 	
 	public CMServerStub getServerStub() {
@@ -44,26 +60,32 @@ public class CMGameServerApp {
 	//	==================================== GAME SERVER PART =========================================//
 	
 	public void sendMonsterOrder(String destSessionName, String destGroupName) {
-//		CMDummyEvent due = new CMDummyEvent();
 		CMUserEvent use = new CMUserEvent();
-//		String eventMessage;
-		monsterOrder = shuffleMonsterOrder(monsterOrder, 1);
+		// send Monster Order만 실행해도 알아서 몬스터 카드를 셔플 시켜준다.
+		monsterOrder = shuffleMonsterOrder(monsterOrder, 1);		
 		
 		use.setStringID("Set Monster Order");
 		for(int i=0; i<15; i++) {
 			use.setEventField(CMInfo.CM_INT, String.valueOf(i), String.valueOf(monsterOrder[i]));
 		}
-//		use.setEventField(CMInfo.CM_INT, "0", String.valueOf(monsterOrder[0]));
 		
 		use.setHandlerSession(destSessionName);
-		use.setHandlerGroup(destGroupName);
-//		due.setDummyInfo("=========TEST MESSAGE==========");		
+		use.setHandlerGroup(destGroupName);		
 		m_serverStub.cast(use, destSessionName, destGroupName);
-//		due = null;
 		use = null;
 	}
 	
-	public int[] shuffleMonsterOrder(int[] arr, int count) {	// parameter로 monsterOrder를 넣는다.
+	public void sendGameStart(String destSessionName, String destGroupName) {
+		CMUserEvent use = new CMUserEvent();
+		use.setStringID("Game Start");
+		use.setHandlerSession(destSessionName);
+		use.setHandlerGroup(destGroupName);
+		m_serverStub.cast(use, destSessionName, destGroupName);
+		use = null;
+	}
+	
+	public int[] shuffleMonsterOrder(int[] arr, int count) {
+		// parameter로 monsterOrder를 넣는다. 일단 send Monster 하면 자동으로 실행되게 코드 짜놨다.
 		int tmp = 0, rand1 = 0, rand2 = 0;
 		
 		for(int i = 0; i < count; i++) {
@@ -80,9 +102,16 @@ public class CMGameServerApp {
 //	==================================== GAME SERVER PART =========================================//
 	
 	
-	
+	// Test Code
 	public void startServer() {
+		Scanner scan = new Scanner(System.in);
+		CMSessionInfo cms = new CMSessionInfo("session1", "192.168.99.1", 7777);
 		
+		System.out.println(cms.getSessionName() + " " + cms.getUserNum());
+		while(m_bRun) {
+//			System.out.println("Blocking Sequence.");
+//			scan.nextInt();
+		}
 	}
 	
 	public void startCM() {
