@@ -660,7 +660,7 @@ public class GUIClient extends JFrame {
 				otherBattleCard[i] = 0;
 			}
 			
-			setIsThisPlayerChooseCard(true);
+			isThisPlayerChooseCard = false;
 			otherBattleCardIndex = 0;
 			myCurrentBattleCard = 0;
 			isMyCardCheckedInBattleCardArray = false;
@@ -848,37 +848,41 @@ public class GUIClient extends JFrame {
 					maxGemIndex |= 1;
 				}
 				
-				if((maxGemIndex & 4) == 4) {		// 占쏙옙占쏙옙 占쏙옙占쏙옙 占쏙옙占쏙옙 !!
-					use.setStringID("Lose Red Gems");
-					use.setEventField(CMInfo.CM_INT, "Num Of Red Gems", String.valueOf(this.myRedGem));
-					m_clientStub.cast(use, myself.getCurrentSession(), myself.getCurrentGroup());
-					
-//					if(currentMonster.isNextMonsterExist()) {
-//						this.currentMonster.getNextMonster().plusGems(myRedGem, 0, 0);
-//					}
-					this.myRedGem = 0;
-				}
+				if(maxNumOfGem != 0) {
 				
-				if((maxGemIndex & 2) == 2) {		// 占쏙옙占� 占쏙옙占쏙옙 占쏙옙占쏙옙 !!
-					use.setStringID("Lose Yellow Gems");
-					use.setEventField(CMInfo.CM_INT, "Num Of Yellow Gems", String.valueOf(this.myYellowGem));
-					m_clientStub.cast(use, myself.getCurrentSession(), myself.getCurrentGroup());
+					if((maxGemIndex & 4) == 4) {		// 占쏙옙占쏙옙 占쏙옙占쏙옙 占쏙옙占쏙옙 !!
+						use.setStringID("Lose Red Gems");
+						use.setEventField(CMInfo.CM_INT, "Num Of Red Gems", String.valueOf(this.myRedGem));
+						m_clientStub.cast(use, myself.getCurrentSession(), myself.getCurrentGroup());
 					
-//					if(currentMonster.isNextMonsterExist()) {
-//						this.currentMonster.getNextMonster().plusGems(0, myYellowGem, 0);
-//					}
-					this.myYellowGem = 0;
-				}
+//						if(currentMonster.isNextMonsterExist()) {
+//							this.currentMonster.getNextMonster().plusGems(myRedGem, 0, 0);
+//						}
+						this.myRedGem = 0;
+					}
 				
-				if((maxGemIndex & 1) == 1) {		// 占식띰옙 占쏙옙占쏙옙 占쏙옙占쏙옙 !!
-					use.setStringID("Lose Blue Gems");
-					use.setEventField(CMInfo.CM_INT, "Num Of Blue Gems", String.valueOf(this.myBlueGem));
-					m_clientStub.cast(use, myself.getCurrentSession(), myself.getCurrentGroup());
+					if((maxGemIndex & 2) == 2) {		// 占쏙옙占� 占쏙옙占쏙옙 占쏙옙占쏙옙 !!
+						use.setStringID("Lose Yellow Gems");
+						use.setEventField(CMInfo.CM_INT, "Num Of Yellow Gems", String.valueOf(this.myYellowGem));
+						m_clientStub.cast(use, myself.getCurrentSession(), myself.getCurrentGroup());
 					
-//					if(currentMonster.isNextMonsterExist()) {
-//						this.currentMonster.getNextMonster().plusGems(0, 0, myBlueGem);
-//					}
+//						if(currentMonster.isNextMonsterExist()) {
+//							this.currentMonster.getNextMonster().plusGems(0, myYellowGem, 0);
+//						}
+						this.myYellowGem = 0;
+					}
+				
+					if((maxGemIndex & 1) == 1) {		// 占식띰옙 占쏙옙占쏙옙 占쏙옙占쏙옙 !!
+						use.setStringID("Lose Blue Gems");
+						use.setEventField(CMInfo.CM_INT, "Num Of Blue Gems", String.valueOf(this.myBlueGem));
+						m_clientStub.cast(use, myself.getCurrentSession(), myself.getCurrentGroup());
+					
+//						if(currentMonster.isNextMonsterExist()) {
+//							this.currentMonster.getNextMonster().plusGems(0, 0, myBlueGem);
+//						}
 					this.myBlueGem = 0;
+					}
+				
 				}
 			}
 		}
