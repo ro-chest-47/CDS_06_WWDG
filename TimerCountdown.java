@@ -1,4 +1,4 @@
-package gamePart;
+//package gamePart;
 
 import java.util.TimerTask;
 
@@ -10,7 +10,7 @@ public class TimerCountdown extends TimerTask{
 	private GUIClient client;
 	
 	public TimerCountdown(GUIClient client) {
-		this.cardDrawCount = -1;		// count�� -1�̾�� �ƹ� �ϵ� ���� �ʴ´�.
+		this.cardDrawCount = -1;		// count占쏙옙 -1占싱억옙占� 占싣뱄옙 占싹듸옙 占쏙옙占쏙옙 占십는댐옙.
 		this.infoShowCount = -1;
 		this.monsterInfo = "";
 		this.isCardDrawCount = false;
@@ -32,20 +32,18 @@ public class TimerCountdown extends TimerTask{
 		if(cardDrawCount > 0) {
 			cardDrawCount--;
 		} else if(cardDrawCount == 0) {
-			client.setMyBattleCard(0);	// �� ��Ʋī�带 ��ȿ�� ī��� ����.
+			client.setMyBattleCard(0);	// 占쏙옙 占쏙옙틀카占썲를 占쏙옙효占쏙옙 카占쏙옙占� 占쏙옙占쏙옙.
 			cardDrawCount--;
-		} else if(cardDrawCount <= -1) {		// ���� ī�带 ���鼭 count�� -1�� ����⶧���� �ƹ��͵� ���� �ʴ´�.
+		} else if(cardDrawCount <= -1) {		// 占쏙옙占쏙옙 카占썲를 占쏙옙占썽서 count占쏙옙 -1占쏙옙 占쏙옙占쏙옙粹㏆옙占쏙옙占� 占싣뱄옙占싶듸옙 占쏙옙占쏙옙 占십는댐옙.
 			// do nothing
 		}
 		
 		if(infoShowCount > 0) {
-			System.out.println("Info Show Countdown...");
 			infoShowCount--;
 		} else if (infoShowCount == 0) {
 			client.setOtherPlayersCard("");
 			client.setMonsterInfo(monsterInfo);
-			client.setIsThisPlayerChooseCard(false);
-			System.out.println("Info Show Count Zero");
+//			client.setIsThisPlayerChooseCard(false);
 			infoShowCount--;
 			
 		} else if (infoShowCount <= -1) {

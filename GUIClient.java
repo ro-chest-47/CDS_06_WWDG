@@ -1,13 +1,9 @@
-package gamePart;
+// package gamePart;
 import java.util.Timer;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-
 //import java.awt.Color.*;
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -19,14 +15,28 @@ import javax.swing.text.StyledDocument;
 import kr.ac.konkuk.ccslab.cm.entity.CMMember;
 import kr.ac.konkuk.ccslab.cm.entity.CMSessionInfo;
 import kr.ac.konkuk.ccslab.cm.entity.CMUser;
-import kr.ac.konkuk.ccslab.cm.event.CMDummyEvent;
 import kr.ac.konkuk.ccslab.cm.event.CMSessionEvent;
+import kr.ac.konkuk.ccslab.cm.event.CMDummyEvent;
 import kr.ac.konkuk.ccslab.cm.event.CMUserEvent;
 import kr.ac.konkuk.ccslab.cm.info.CMInfo;
 import kr.ac.konkuk.ccslab.cm.info.CMInteractionInfo;
 import kr.ac.konkuk.ccslab.cm.stub.CMClientStub;
 
 import java.security.SecureRandom;
+
+// add Jungmo
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Scanner;
+import kr.ac.konkuk.ccslab.cm.event.*;
+// add Jungmo
+
+
+
+
+// åª›ê³¸ì¥Œ event boolean ç•°ë¶½ï¿½
+// session ï¿½ì ’ï¿½ëƒ½ï¿½ë¸¯ï¿½ë’— logicï¿½ë¿‰ ï¿½ï¿½ï¿½ë¹ ï¿½ë–ï¿½ë–† æ€¨ì¢Šï¿½ì‡³ë¹è¹‚ï¿½ å¯ƒï¿½.
 
 public class GUIClient extends JFrame {
 	private JTextArea otherPlayersCard = new JTextArea(3, 20);
@@ -41,20 +51,38 @@ public class GUIClient extends JFrame {
 	
 	private JButton enterButton = new JButton("Enter");	//
 	private JButton loginButton = new JButton("Log in");
-	private JButton sessionEnter = new JButton("Enter Session");
 	private JButton sessionInfo = new JButton("Session Info");
-	private JRadioButton session[] 
-			= { new JRadioButton("Session 1"), new JRadioButton("Session 2"), new JRadioButton("Session 3") }; 	// {"Session 1", "Session 2", "Session 3"}
-	private ButtonGroup sessionButtonGroup = new ButtonGroup();
 	private int sessionIndex;
-//	private JButton showSession2Button = new JButton("Session 2");
-//	private JButton showSession3Button = new JButton("Session 3");
+	
+	private JRadioButton enterSession1Button = new JRadioButton("Session 1");
+	private JRadioButton enterSession2Button = new JRadioButton("Session 2");
+	private JRadioButton enterSession3Button = new JRadioButton("Session 3");
+	private ButtonGroup sessionGroup = new ButtonGroup();
 	private JTextArea userInfoBySessions = new JTextArea(5, 50);
+	
+	
+	//add JM
+	private JButton signupButton = new JButton("Sign up");
+	private JButton signoutButton = new JButton("Sign out");
+	private JButton logoutButton = new JButton("Log out");
+	// add JM
+	
+	private JLabel loginIdLabel =new JLabel("ID:");
+	private JTextField loginId = new JTextField(10);
+	private JLabel loginPwLabel =new JLabel("PW:");
+	private JTextField loginPw = new JTextField(10);
 	
 	private MyMouseListener cmMouseListener;
 	private CMClientStub m_clientStub;
 	private GUIClientEventHandler m_eventHandler;
 	
+	
+	// add JM
+	//private CMClientStub c_stub;
+	//private ClientEventHandler c_event;
+	private CMInteractionInfo c_info;
+	private CMUser c_self;
+	// add JM
 	
 	private Monster[] monster;
 	private Monster currentMonster;
@@ -83,15 +111,28 @@ public class GUIClient extends JFrame {
 	private String[] otherPlayerName;
 	private int[] otherPlayerScore;
 //	private String playerAndScore;
+	private boolean isMyCardCheckedInBattleCardArray;
 	
 	private Timer timer;
 	private TimerCountdown timerCountdown;
 	
 	private SecureRandom random;
 	
+	
+	
+// add event state boolean value
+// add JM
+	
+	private boolean isLogin;
+	private boolean isSession;
+	
+// add JM
+	
+	
 	public GUIClient() {
 		MyKeyListener cmKeyListener = new MyKeyListener();
 		MyActionListener cmActionListener = new MyActionListener();
+		MyRadioActionListener cmRadioActionListener = new MyRadioActionListener();
 		cmMouseListener = new MyMouseListener();
 		
 		setTitle("WA! Dungeon");
@@ -99,7 +140,7 @@ public class GUIClient extends JFrame {
 		otherPlayersCard.setEditable(false);
 		dungeonAndStageInfo.setEditable(false);
 		monsterInfo.setEditable(false);
-		myBattleCards[0] = new JButton("¼±ÅÃ");
+		myBattleCards[0] = new JButton("my choice");
 		for(int i = 1; i < 8; i++) {
 			myBattleCards[i] = new JButton(Integer.toString(i));
 		}
@@ -116,13 +157,13 @@ public class GUIClient extends JFrame {
 		
 		////////// For Test //////////
 		
-		otherPlayersCard.setText("otherPlayersCard");
-		dungeonAndStageInfo.setText("dungeonAndStageInfo");
-		monsterInfo.setText("monsterInfo");
-		myDrawableCards.setText("myDrawableCards");
-		myScore.setText("myScore");
+		otherPlayersCard.setText("other Players Card");
+		dungeonAndStageInfo.setText("dungeon And Stage Info");
+		monsterInfo.setText("monster Info");
+		myDrawableCards.setText("my Drawable Cards");
+		myScore.setText("my Score");
 //		chatLog.setText("chatLog");
-		userInfoBySessions.setText("userInfoBySessions");
+		userInfoBySessions.setText("user Info By Sessions");
 		
 		//////////For Test //////////
 		
@@ -132,19 +173,30 @@ public class GUIClient extends JFrame {
 		southPanelTop.setLayout(new FlowLayout());
 		southPanelTop.add(enterButton);
 		southPanelTop.add(loginButton);
+		
+		// add JM
+		southPanelTop.add(logoutButton);
+		southPanelTop.add(signupButton);
+		southPanelTop.add(signoutButton);
+		// add JM
+		
+		southPanelTop.add(loginIdLabel);
+		southPanelTop.add(loginId);
+		southPanelTop.add(loginPwLabel);
+		southPanelTop.add(loginPw);
+		
 		JPanel southPanelCenter = new JPanel();
 		southPanelCenter.setLayout(new FlowLayout());
-		southPanelCenter.add(sessionEnter);
-		sessionButtonGroup.add(session[0]);
-		sessionButtonGroup.add(session[1]);
-		sessionButtonGroup.add(session[2]);
-//		southPanelCenter.add(sessionButtonGroup);
-		southPanelCenter.add(session[0]);
-		southPanelCenter.add(session[1]);
-		southPanelCenter.add(session[2]);
-//		southPanelCenter.add(userInfoBySessions);
-//		southPanelCenter.add(showSession2Button);
-//		southPanelCenter.add(showSession3Button);
+		
+		// add JM
+		sessionGroup.add(enterSession1Button);
+		sessionGroup.add(enterSession2Button);
+		sessionGroup.add(enterSession3Button);
+		
+		// add JM
+		southPanelCenter.add(enterSession1Button);
+		southPanelCenter.add(enterSession2Button);
+		southPanelCenter.add(enterSession3Button);
 		JPanel southPanelBottom = new JPanel();
 		southPanelBottom.setLayout(new FlowLayout());
 		southPanelBottom.add(sessionInfo);
@@ -173,11 +225,17 @@ public class GUIClient extends JFrame {
 		startButton.addActionListener(cmActionListener);
 		enterButton.addActionListener(cmActionListener);
 		loginButton.addActionListener(cmActionListener);
-		sessionEnter.addActionListener(cmActionListener);
-		session[0].addActionListener(cmActionListener);
-		session[1].addActionListener(cmActionListener);
-		session[2].addActionListener(cmActionListener);
+		
+		// add JM
 		sessionInfo.addActionListener(cmActionListener);
+		logoutButton.addActionListener(cmActionListener);
+		signupButton.addActionListener(cmActionListener);
+		signoutButton.addActionListener(cmActionListener);
+		// add JM
+		
+		enterSession1Button.addActionListener(cmRadioActionListener);
+		enterSession2Button.addActionListener(cmRadioActionListener);
+		enterSession3Button.addActionListener(cmRadioActionListener);
 		
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setSize(1000, 600);
@@ -185,6 +243,13 @@ public class GUIClient extends JFrame {
 		
 		m_clientStub = new CMClientStub();
 		m_eventHandler = new GUIClientEventHandler(m_clientStub, this);
+		//c_stub = new CMClientStub();
+		//c_event = new ClientEventHandler(c_stub);
+		c_info = m_clientStub.getCMInfo().getInteractionInfo();
+		c_self = c_info.getMyself();
+		
+		isLogin = false;
+		isSession = false;
 		
 		myChatMessage.requestFocus();
 		
@@ -197,12 +262,15 @@ public class GUIClient extends JFrame {
 				, new Monster(7, 3, 2, 0), new Monster(8, 0, 1, 4), new Monster(10, 3, 3, 0), new Monster(11, 2, 0, 4), new Monster(12, 2, 2, 0)
 				, new Monster(13, 1, 1, 2), new Monster(15, 2, 5, 0), new Monster(18, 1, 2, 2), new Monster(19, 2, 1, 2), new Monster(20, 3, 2, 2)};
 		
-		sessionIndex = 0;
-		session[0].setSelected(true);
-		session[1].setSelected(false);
-		session[2].setSelected(false);
+		sessionIndex = 1;
 		
-		// ÇÑ °ÔÀÓ¸¶´Ù ÃÊ±âÈ­ ÇØÁà¾ß ÇÏ´Â °Í
+		
+		 enterSession1Button.setSelected(true);
+		 enterSession1Button.setSelected(false);
+		 enterSession1Button.setSelected(false);
+		 
+		
+		// gks rp
 		monsterOrder = new int[NUMOFMONSTER];
 		for(int i = 0; i < NUMOFMONSTER; i++) {
 			monsterOrder[i] = i;
@@ -211,8 +279,8 @@ public class GUIClient extends JFrame {
 		myYellowGem = 0;
 		myBlueGem = 0;
 		numOfPlayer = 0;
-		stageNum = 0;		// ¾ê´Â ¸ó½ºÅÍ¿Í ÇÑ ¹ø ½Î¿ï¶§¸¶´Ù increase ½ÃÄÑÁà¾ß ÇÑ´Ù.
-		myAggScore = 0;		// Á¾ÇÕ ½ºÄÚ¾î.
+		stageNum = 0;		// å ì™ì˜™å ï¿½ å ì™ì˜™å ì‹¶ìš¸ì˜™ å ì™ì˜™ å ì™ì˜™ å ì‹¸ìš¸ë•Œå ì™ì˜™å ì™ì˜™ increase å ì™ì˜™å ì™ì˜™å ì™ì˜™å ï¿½ å ì‹¼ëŒì˜™.
+		myAggScore = 0;		// å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ìŒ˜ì–µì˜™.
 		otherPlayerEventCount = 0;
 		otherPlayerName = new String[5];
 		otherPlayerScore = new int[5];
@@ -221,38 +289,260 @@ public class GUIClient extends JFrame {
 			otherPlayerScore[i] = 0;
 		}
 		
-		// ÇÑ ´øÀü (´Ù¼¸ ½ºÅ×ÀÌÁö)¸¶´Ù ÃÊ±âÈ­ ÇØÁà¾ß ÇÏ´Â °Í
+		// å ì™ì˜™ å ì™ì˜™å ì™ì˜™ (å ìŒ•ì‡½ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™å ì™ì˜™)å ì™ì˜™å ì™ì˜™ å ì‹­ê¹ì˜™í™” å ì™ì˜™å ì™ì˜™å ï¿½ å ì‹¹ëŒì˜™ å ì™ì˜™
 		isMyBattleCardPossible = new boolean[NUMOFBATTLECARD + 1];
 		for(int i = 0; i<NUMOFBATTLECARD + 1; i++) {
 			isMyBattleCardPossible[i] = true;
 		}
 
-		// ÇÑ ½ºÅ×ÀÌÁö¸¶´Ù ÃÊ±âÈ­ ÇØÁà¾ß ÇÏ´Â °Íµé
+		// å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì‹­ê¹ì˜™í™” å ì™ì˜™å ì™ì˜™å ï¿½ å ì‹¹ëŒì˜™ å ì‹¶ë“¸ì˜™
 		isThisPlayerChooseCard = false;
 		otherPlayerAndCard = new String[] {"", "", "", "", ""};
 		otherBattleCard = new int[] {0, 0, 0, 0, 0};
-		otherBattleCardIndex = 0;
 //		allPlayerCard = new int[] {0, 0, 0, 0, 0};
 		allPlayerCardCount = 0;
+		otherBattleCardIndex = 0;
 		myCurrentBattleCard = 0;
+		isMyCardCheckedInBattleCardArray = false;
 		isMyBattleCardActive = true;
 		otherPlayerFinishCount = 0;
-		
-
-		
+	
 		timer = new Timer();
 		timerCountdown = new TimerCountdown(this);
-		timer.scheduleAtFixedRate(timerCountdown, 0, 1000);		// 1ÃÊ Å¸ÀÌ¸Ó¸¦ ¼³Á¤ÇØÁØ´Ù.
+		timer.scheduleAtFixedRate(timerCountdown, 0, 1000);		// 1å ì™ì˜™ íƒ€å ì‹±ë¨¸ëªŒì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™å ìŒ”ëŒì˜™.
 		
 		random = new SecureRandom();
 	}
+
+	// add JM
+	public CMClientStub getClientStub() {
+		return m_clientStub;
+	}
 	
+	public GUIClientEventHandler getClientEventHandler() {
+		return m_eventHandler;
+	}
+	
+	public CMInteractionInfo getClientInteractionInfo() {
+		return c_info;
+	}
+	
+	public CMUser getClientUserInfo() {
+		return c_self;
+	}
+	
+	// ç•°ì’•ì ° ï§¡ìŒï¿½ setUserInfoBySessions ï¿½ê¶—ï¿½ìŠœï¿½ë¸¯æ€¨ï¿½...
+	// åª›ê³¸ì¥Œ input è«›ì…ë’— è«›â‘¸ì¾¿ æ€¨ì¢Šì ®ï¿½ë¸· å¯ƒï¿½.
+	public void login(CMClientStub cmstub) {
+		
+		String strUserName = null;
+		String strPassword = null;
+		CMSessionEvent reply = null;
+		
+		/* use GUI
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		
+		//System.out.print("user name: ");
+		// use GUI
+		
+		try {
+			strUserName = br.readLine();
+			
+			//System.out.print("password: ");
+			// use GUI
+			strPassword = br.readLine();
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		*/
+		
+		// å¯ƒê³Œë‚µ ï§¡ìŒì“£ è¹‚ê¾¨ë£„æ¿¡ï¿½ ï§ëš®ë±¾ï§ï¿½ é†«ë—­ì“£ å¯ƒï¿½.
+		strUserName = loginId.getText();
+		strPassword = loginPw.getText();
+		cmstub.loginCM(strUserName, strPassword);
+		/*
+		//while(true) {
+			if(reply != null) {
+				
+				if (reply.isValidUser() == 0) {
+					setUserInfoBySessions("client fails to get authentiaction by server...");
+	//				break;
+				}
+				else if (reply.isValidUser() == -1) {
+					setUserInfoBySessions("client is already in the login-user list...");
+	//				break;
+				}
+				else {
+					setUserInfoBySessions("client successfully logs in to the server...");
+					isLogin = true;
+	//				break;
+				}
+			}
+			else {
+				setUserInfoBySessions("client is too be fast to get authentiaction by server...");
+			}
+	//	}
+	 * 
+	 */
+		
+		// ID/PW ç¥ë‡ë¦°ï¿½ì†• ï¿½ë–†ï¿½ê¶— å¯ƒï¿½.
+	}
+	
+	public void signUp(CMClientStub cmstub) {
+		
+		String strUserName = null;
+		String strPassword = null;
+		String resultText = null;
+		
+		boolean isPossibleName = false;
+		boolean isPossiblePass = false;
+		
+		Scanner scan = new Scanner(System.in);
+		
+		do {
+			
+			setUserInfoBySessions("ï¿½ìï¿½ë¸¯ï¿½ë–†ï¿½ë’— UserNameï¿½ì“£ ï¿½ìºè‡¾ï¿½ ï¿½ëƒ¼è‡¾ëª„ì˜„ è«›ï¿½ ï¿½ë‹½ï¿½ì˜„ç‘œï¿½ ï¿½ê¶—ï¿½ìŠœï¿½ë¸¯ï¿½ë¿¬ 8æ¹²ï¿½ï¿½ì˜„ ï¿½ì” ï¿½ê¸½ï¿½ì‘æ¿¡ï¿½ ï¿½ì—¯ï¿½ì °ï¿½ë¹äºŒì‡±ê½­ï¿½ìŠ‚." + 
+					"ï¿½ìï¿½ë¸¯ï¿½ë–†ï¿½ë’— Passwordç‘œï¿½ ï¿½ìºè‡¾ï¿½ ï¿½ëƒ¼è‡¾ëª„ì˜„ è«›ï¿½ ï¿½ë‹½ï¿½ì˜„ç‘œï¿½ ï¿½ê¶—ï¿½ìŠœï¿½ë¸¯ï¿½ë¿¬ 8æ¹²ï¿½ï¿½ì˜„ ï¿½ì” ï¿½ê¸½ï¿½ì‘æ¿¡ï¿½ ï¿½ì—¯ï¿½ì °ï¿½ë¹äºŒì‡±ê½­ï¿½ìŠ‚.");
+			//strUserName = scan.nextLine();
+			System.out.println();
+			//strPassword = scan.nextLine();
+			
+			if(!strUserName.isEmpty()) {
+				if(strUserName.length() > 7) {
+					if(strUserName.matches("^[0-9a-z]*$")){
+						isPossibleName = true;
+					}
+					else {
+						resultText += "UserNameï¿½ë¿‰ï¿½ë’— 0~9 ï¿½ê¶—ï¿½ì” ï¿½ì“½ ï¿½ë‹½ï¿½ì˜„ï¿½ï¿½ ï¿½ìºï¿½ë¼± ï¿½ëƒ¼è‡¾ëª„ì˜„ï§ï¿½ ï¿½ê¶—ï¿½ìŠœï¿½ë¸· ï¿½ë‹” ï¿½ì—³ï¿½ë’¿ï¿½ë•²ï¿½ë–.\n";
+					}
+				}
+				else {
+					resultText += "UserNameï¿½ï¿½ ï¿½ìºè‡¾ï¿½ ï¿½ëƒ¼è‡¾ëª„ì˜„ è«›ï¿½ ï¿½ë‹½ï¿½ì˜„ç‘œï¿½ ï¿½ê¶—ï¿½ìŠœï¿½ë¸¯ï¿½ë¿¬ 8æ¹²ï¿½ï¿½ì˜„ ï¿½ì” ï¿½ê¸½ï¿½ì‘æ¿¡ï¿½ ï¿½ì—¯ï¿½ì °ï¿½ë¹ï¿½ë¹ ï¿½ë¹€ï¿½ë•²ï¿½ë–.\n";
+				}
+			}
+			else {
+				resultText += "UserNameï¿½ï¿½ æ€¨ë“¬ê°šï¿½ì‘æ¿¡ï¿½ ï¿½ì—¯ï¿½ì °ï¿½ë¸· ï¿½ë‹” ï¿½ë¾¾ï¿½ë’¿ï¿½ë•²ï¿½ë–.\n";
+			}
+			
+			if(!strPassword.isEmpty()) {
+				if(strPassword.length() > 7) {
+					if(strPassword.matches("^[0-9a-z]*$")) {
+						if(!strPassword.equals(strUserName)) {
+							isPossiblePass = true;
+						}
+						else {
+							resultText += "Passwordï¿½ë’— UserNameæ€¨ï¿½ ï¿½ë£ï¿½ì”ªï¿½ë¸· ï¿½ë‹” ï¿½ë¾¾ï¿½ë’¿ï¿½ë•²ï¿½ë–.\n";
+						}
+					}
+					else {
+						resultText += "Passwordï¿½ë¿‰ï¿½ë’— 0~9 ï¿½ê¶—ï¿½ì” ï¿½ì“½ ï¿½ë‹½ï¿½ì˜„ï¿½ï¿½ ï¿½ìºï¿½ë¼± ï¿½ëƒ¼è‡¾ëª„ì˜„ï§ï¿½ ï¿½ê¶—ï¿½ìŠœï¿½ë¸· ï¿½ë‹” ï¿½ì—³ï¿½ë’¿ï¿½ë•²ï¿½ë–.\n";
+					}
+				}
+				else {
+					resultText += "Passwordï¿½ë’— ï¿½ìºè‡¾ï¿½ ï¿½ëƒ¼è‡¾ëª„ì˜„ è«›ï¿½ ï¿½ë‹½ï¿½ì˜„ç‘œï¿½ ï¿½ê¶—ï¿½ìŠœï¿½ë¸¯ï¿½ë¿¬ 8æ¹²ï¿½ï¿½ì˜„ ï¿½ì” ï¿½ê¸½ï¿½ì‘æ¿¡ï¿½ ï¿½ì—¯ï¿½ì °ï¿½ë¹ï¿½ë¹ ï¿½ë¹€ï¿½ë•²ï¿½ë–.\n";
+				}
+			}
+			else {
+				resultText += "Passwordï¿½ë’— æ€¨ë“¬ê°šï¿½ì‘æ¿¡ï¿½ ï¿½ì—¯ï¿½ì °ï¿½ë¸· ï¿½ë‹” ï¿½ë¾¾ï¿½ë’¿ï¿½ë•²ï¿½ë–.\n";
+			}
+			
+			setUserInfoBySessions(resultText);
+			
+		} while(!isPossibleName || !isPossiblePass);
+		
+		cmstub.registerUser(strUserName, strPassword);
+		
+	}
+	
+	public void signOut(CMClientStub cmstub) {
+		
+		String strUserName = null;
+		String strPassword = null;
+		
+		cmstub.deregisterUser(strUserName, strPassword);
+		
+	}
+	
+	public void joinPlayRoom(CMClientStub cmstub) {
+
+		// use joinsession : if possible group = 0ï¿½ë¿‰ ï¿½ì ’æ´¹ì‡³ë¸¯ï¿½ì ®æ€¨ï¿½ ï¿½ë¸¯ï§ï¿½ ï¿½ë¸ï¿½ë§‚ï¿½ë–æ€¨ï¿½ ï¿½ë¸· å¯ƒï¿½.
+		// use change group : group state = trueï¿½ì”¤ groupï¿½ì‘æ¿¡ï¿½ è«›ë¶¾ì¤ˆ ï¿½ì” ï¿½ë£.
+		// server :: change æ´¹ëªƒï¼™ è«›ì†ì‘ï§ï¿½ ï¿½ë¹ï¿½ë–¦ groupï¿½ì“½ ï¿½ì”¤ï¿½ìï¿½ë‹” ï¿½ì†—ï¿½ì”¤ ï¿½ì‘ 5ç‘œï¿½ ç¥ë‡ë‚µï¿½ë¸¯ï§ï¿½ ï¿½ë¸ï¿½ë§‚ï¿½ë–æ€¨ï¿½ ï¿½ë¸· å¯ƒï¿½.
+		//				5ç‘œï¿½ ï¿½ê½†ï§ï¿½ ï¿½ë¸¡ï¿½ì“£ ï¿½ë–† è«›ì„í€¬ group ï¿½ì”¤ï¿½ì ï¿½ë‹” +1ï¿½ë¸¯æ€¨ï¿½ 5ï§ï¿½ falseæ¿¡ï¿½ è«›ë¶½ï¿½ å¯ƒï¿½.
+		
+		String sessionName = "session"+Integer.toString(sessionIndex);
+		boolean result = false;
+		Scanner scan = new Scanner(System.in);
+		CMDummyEvent de = new CMDummyEvent();
+		
+		setUserInfoBySessions("ï§¡ëª„ë¿¬ç‘œï¿½ ï¿½ìï¿½ë¸¯ï¿½ë’— Sessionï¿½ì“½ ï¿½ì” ç”±ê¾©ì“£ ï¿½ì—¯ï¿½ì °ï¿½ë¸¯ï¿½ê½­ï¿½ìŠ‚.");
+		//sessionName = scan.nextLine();
+		
+		de.setHandlerSession(sessionName);
+		de.setHandlerGroup("null");
+		de.setDummyInfo("0000&"+cmstub.getMyself().getName()+"&check Possible room");
+		
+		cmstub.send(de, "SERVER");
+		
+	}
+	
+	public void leavePlayRoom(CMClientStub cmstub) {
+		
+		CMDummyEvent de = new CMDummyEvent();
+		
+		de.setHandlerSession(cmstub.getMyself().getCurrentSession());
+		de.setHandlerGroup(cmstub.getMyself().getCurrentGroup());
+		de.setDummyInfo("0020&"+cmstub.getMyself().getName()+"&leave Room");
+		
+		cmstub.send(de, "SERVER");
+		// leave session ï¿½ë¸· å¯ƒï¿½.
+		// server :: leave session è«›ì†ì‘ï§ï¿½ ï¿½ì½ï¿½ì˜± groupï¿½ì“½ ï¿½ì”¤ï¿½ì ï¿½ë‹” -1ï¿½ë¸· å¯ƒï¿½.
+		//			:: -1ï¿½ë¸³å¯ƒï¿½ 4ï¿½ì” ï¿½ë¸¯ï§ï¿½ flaseï¿½ë¿‰ï¿½ê½Œ trueæ¿¡ï¿½ è«›ë¶½ï¿½ å¯ƒï¿½
+		//			:: 
+		
+	}
+	
+	public void readyToPlay(CMClientStub cmstub) {
+		
+		// serverï¿½ë¿‰ ï¿½ì” è¸°ã…½ë“ƒ è¹‚ëŒ€ê¶ª å¯ƒï¿½.
+		// server :: event è«›ì†ì‘ï§ï¿½ ï¿½ë¹ï¿½ë–¦ userï¿½ì“½ stateç‘œï¿½ true ï¿½ë¸· å¯ƒï¿½.
+		// 			ï§¡ëª„ë¿¬ä»¥ë¬’ì”¤ ï¿½ì”¤ï¿½ìï§ëš°ê²® ï¿½ë£ï¿½ìŸ» array ï¿½ê½‘ï¿½ë¼µï¿½ë¸¯æ€¨ï¿½ all trueï§ï¿½ ï¿½ë–†ï¿½ì˜‰. groupï¿½ì“½ state falseæ¿¡ï¿½ è¹‚ï¿½å¯ƒì€ë¸· 
+		//			readyæ¿¡ï¿½ è«›ë¶½ï¿½ ï¿½ë¸£ï¿½ë¿‰ï§ï¿½ ï¿½ë¸³è¸°ï¿½ checkï¿½ë¸¿.
+		
+		CMDummyEvent de = new CMDummyEvent();
+		
+		de.setHandlerSession(cmstub.getMyself().getCurrentSession());
+		de.setHandlerGroup(cmstub.getMyself().getCurrentGroup());
+		de.setDummyInfo("0030&"+cmstub.getMyself().getName()+"&ready to play.");
+		
+		cmstub.send(de, "SERVER");
+		
+	}
+	
+	public void unreadyToPlay(CMClientStub cmstub) {
+		
+		// serverï¿½ë¿‰ ï¿½ì” è¸°ã…½ë“ƒ è¹‚ëŒ€ê¶ª å¯ƒï¿½.
+		// server :: event è«›ì†ì‘ï§ï¿½ ï¿½ë¹ï¿½ë–¦ userï¿½ì“½ stateç‘œï¿½ falseæ¿¡ï¿½ ï¿½ë¸· å¯ƒï¿½.
+		// 			 unreadyæ¿¡ï¿½ è«›ë¶½ï¿½ ï¿½ë¸£ï¿½ë¿‰ï¿½ë’— check ï¿½ë¸· ï¿½ë¸˜ï¿½ìŠ‚åª›ï¿½ ï¿½ë¾¾ï¿½ì“¬.
+		
+		CMDummyEvent de = new CMDummyEvent();
+		
+		de.setHandlerSession(cmstub.getMyself().getCurrentSession());
+		de.setHandlerGroup(cmstub.getMyself().getCurrentGroup());
+		de.setDummyInfo("0040&"+cmstub.getMyself().getName()+"&unready to play.");
+		
+		cmstub.send(de, "SERVER");
+		
+	}
+	
+	// add JM
 	public Monster getCurrentMonster() {
 		return this.currentMonster;
 	}
 
 	public void linkMonsterOrder(int[] monOrder) {
-		for(int i = 0; i < NUMOFMONSTER - 1; i++) {
+		for(int i = 0; i < NUMOFMONSTER-1; i++) {
 			monster[monOrder[i]].setNextMonster(monster[monOrder[i+1]]);
 		}
 		this.currentMonster = monster[monOrder[0]];
@@ -268,8 +558,6 @@ public class GUIClient extends JFrame {
 	}
 	
 	public void setMonsterInfo(String text) {
-
-		System.out.println("Set Monster Info:\n" + text);
 		monsterInfo.setText(text);
 	}
 	
@@ -282,7 +570,7 @@ public class GUIClient extends JFrame {
 	}
 	
 	public void setMyCardButtonEnable(int cardIndex, boolean buttonSwitch) {
-		if(cardIndex == 0) {		// 0¹ø ¹öÆ°Àº "¼±ÅÃ" ¹öÆ°ÀÌ¶ó¼­ 0¹øÀº ÇØÁ¦µÇÁö ¾Ê´Â´Ù.
+		if(cardIndex == 0) {		// 0å ì™ì˜™ å ì™ì˜™íŠ¼å ì™ì˜™ "å ì™ì˜™å ì™ì˜™" å ì™ì˜™íŠ¼å ì‹±ë°ì˜™ 0å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì‹­ëŠ”ëŒì˜™.
 			return;
 		}
 		myBattleCards[cardIndex].setEnabled(buttonSwitch);
@@ -292,33 +580,27 @@ public class GUIClient extends JFrame {
 		isThisPlayerChooseCard = b;
 	}
 	
-	public void proceedGame() {		// °ÔÀÓ ½ÃÀÛ. ¼­¹ö¿¡¼­´Â °ÔÀÓ ½ÃÀÛ Àü¿¡ monster order¸¦ º¸³»ÁÖ¾î¾ß ÇÑ´Ù.
+	public void proceedGame() {		// å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™. å ì™ì˜™å ì™ì˜™å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ monster orderå ì™ì˜™ å ì™ì˜™å ì™ì˜™å ìŒì–µì˜™å ï¿½ å ì‹¼ëŒì˜™.
 		myRedGem = 0;
 		myYellowGem = 0;
 		myBlueGem = 0;
-		// Test Code
-//		numOfPlayer = m_clientStub.getGroupMembers().getMemberNum() + 1;		
-		// getMemberNum()Àº ³ª¸¦ Á¦¿ÜÇÑ ±×·ì ÀÎ¿ø ¼ö¸¦ ¹İÈ¯ÇÑ´Ù.
-		
-		// Test Code
-		numOfPlayer = 1;
-		
-		
+		numOfPlayer = m_clientStub.getGroupMembers().getMemberNum();		
+		// getMemberNum()å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ìŒ“ë¤„ì˜™ å ì‹¸ìš¸ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™í™˜å ì‹¼ëŒì˜™.
 		stageNum = 0;
 		myAggScore = 0;
 		otherPlayerEventCount = 0;
+		
+		// error åª›ï¿½ï¿½ë’«ï¿½ê½¦ è­°ëŒì˜± (5åª›ï¿½ ï¿½ë¸˜ï¿½ë•²ï¿½ì”ª numOfPlayer æºëš¯ï¿½ ï¿½ë£„ï¿½ë’—å¯ƒï¿½ ï§ìšì“£ï¿½ë²)
 		for(int i=0; i<5; i++) {
 			otherPlayerName[i] = "";
 			otherPlayerScore[i] = 0;
 		}
 
-		
 		for(int i = 0; i<NUMOFBATTLECARD + 1; i++) {
 			isMyBattleCardPossible[i] = true;
 			setMyCardButtonEnable(i, true);
 		}
 		
-			
 		isThisPlayerChooseCard = false;
 		for(int i=0; i<5; i++) {
 			otherPlayerAndCard[i] = "";
@@ -327,11 +609,12 @@ public class GUIClient extends JFrame {
 		}
 		otherBattleCardIndex = 0;
 		myCurrentBattleCard = 0;
+		isMyCardCheckedInBattleCardArray = false;
 		isMyBattleCardActive = true;
 		allPlayerCardCount = 0;
 		otherPlayerFinishCount = 0;
 		
-		// Ã¹ ¹øÂ° ¸ó½ºÅÍ´Â °ÔÀÓ ½ÃÀÛ ÈÄ ¹Ù·Î º¸ÀÌ°Ô ÇÑ´Ù.
+		// ì²« å ì™ì˜™ì§¸ å ì™ì˜™å ì‹¶ëŒì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™ å ìŒ•ë¤„ì˜™ å ì™ì˜™å ì‹±ê³¤ì˜™ å ì‹¼ëŒì˜™.
 		String currentMonsterInfoText = currentMonster.getName()
 				+ "\nPower: " + currentMonster.getPower() + "\tRed Gem: " + currentMonster.getRedGem() 
 				+ "\tYellow Gem: " + currentMonster.getYellowGem() + "\tBlue Gem: " + currentMonster.getBlueGem();
@@ -340,19 +623,19 @@ public class GUIClient extends JFrame {
 		setDungeonAndStageInfo("Stage: " + (stageNum + 1));
 		setMyScore("Red Gems: " + myRedGem + "\tYellow Gems: " + myYellowGem + "\tBlue Gems: " + myBlueGem);
 			
-		timerCountdown.setDrawCount(30);	// Ä«¿îÆ®´Ù¿î 30ÃÊ ¼³Á¤.  
+		timerCountdown.setDrawCount(40);	// ì¹´å ì™ì˜™íŠ¸å ìŒ•ìš¸ì˜™ 30å ì™ì˜™ å ì™ì˜™å ì™ì˜™.  
 			
-			// ¿©±â±îÁö°¡ Ã¹ ¹øÂ° ÀüÅõ¿¡¼­ ÇÒ ÀÏ !!!!!!!
+			// å ì™ì˜™å ì™ì˜™å ì™ì˜™å ì™ì˜™å ï¿½ ì²« å ì™ì˜™ì§¸ å ì™ì˜™å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì™ì˜™ å ì™ì˜™ !!!!!!!
 			
 			
 			
 			
 //			stageNum++;  no no
 			
-//			if(currentMonster.isNextMonsterExist()) {	// ¹èÆ² Á¾·á ÈÄ ¸¸¾à ÀÌ ¸ó½ºÅÍ°¡ ¸¶Áö¸· ¸ó½ºÅÍ°¡ ¾Æ´Ï¸é ´ÙÀ½ ¸ó½ºÅÍ ¶ç¿öÁÖ°í ´Ù½Ã 1´Ü°è·Î.  
+//			if(currentMonster.isNextMonsterExist()) {	// å ì™ì˜™í‹€ å ì™ì˜™å ì™ì˜™ å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™ å ì™ì˜™å ì‹¶ê³¤ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì‹¶ê³¤ì˜™ å ì‹£ë‹ˆëªŒì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™æ–‚å ï¿½ å ìŒ•ì™ì˜™ 1å ìŒ¤ê³¤ì˜™å ï¿½.  
 //				currentMonster = currentMonster.getNextMonster();
 //			} else {					
-//				// ¸¶Áö¸· ¸ó½ºÅÍ¸é Á¡¼ö »êÁ¤ ÈÄ °ÔÀÓ Á¾·á.
+//				// å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì‹¶ëªŒì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™.
 //				myAggScore = getScore();
 //				showMyScore();
 //				
@@ -362,9 +645,10 @@ public class GUIClient extends JFrame {
 	}
 	
 	public void proceedStage() {
-		if(currentMonster.isNextMonsterExist()) {		// ´ÙÀ½ ¸ó½ºÅÍ°¡ ÀÖÀ¸¸é Stage ÁøÇà
+		if(currentMonster.isNextMonsterExist()) {		// å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì‹¶ê³¤ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ Stage å ì™ì˜™å ì™ì˜™
 			stageNum++;
-			if(stageNum % 5 == 0) {		// stage°¡ 5·Î ³ª´©¾î ¶³¾îÁö¸é ´ÙÀ½ ´øÀü ÀÔ¼ºÀÌ¹Ç·Î ¹èÆ² Ä«µå °»½Å.
+			
+			if(stageNum % 5 == 0) {		// stageå ì™ì˜™ 5å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ìŒ‰ì‡½ì˜™å ì‹±ë¯€ë¤„ì˜™ å ì™ì˜™í‹€ ì¹´å ì™ì˜™ å ì™ì˜™å ì™ì˜™.
 				for(int i = 0; i<NUMOFBATTLECARD + 1; i++) {
 					isMyBattleCardPossible[i] = true;
 					setMyCardButtonEnable(i, true);
@@ -375,8 +659,11 @@ public class GUIClient extends JFrame {
 				otherPlayerAndCard[i] = "";
 				otherBattleCard[i] = 0;
 			}
+			
+			setIsThisPlayerChooseCard(true);
 			otherBattleCardIndex = 0;
 			myCurrentBattleCard = 0;
+			isMyCardCheckedInBattleCardArray = false;
 			isMyBattleCardActive = true;
 			allPlayerCardCount = 0;
 			
@@ -387,52 +674,44 @@ public class GUIClient extends JFrame {
 			String currentMonsterInfoText = currentMonster.getName()
 					+ "\nPower: " + currentMonster.getPower() + "\tRed Gem: " + currentMonster.getRedGem() 
 					+ "\tYellow Gem: " + currentMonster.getYellowGem() + "\tBlue Gem: " + currentMonster.getBlueGem();
-			timerCountdown.setInfoShowCount(10, currentMonsterInfoText);	
-			// 10ÃÊ ÈÄ¿¡ »õ·Î¿î ¸ó½ºÅÍ Á¤º¸, ºó »ó´ë Ä«µå Ã¢À» º¸¿©ÁØ´Ù. ±×¸®°í 10ÃÊ ÈÄ¿¡ ´Ù½Ã ¼±ÅÃ ¹öÆ°ÀÌ È°¼ºÈ­ µÈ´Ù.
+			setMonsterInfo(currentMonsterInfoText);
+			currentMonsterInfoText = currentMonster.getName()
+					+ "\nPower: " + currentMonster.getPower() + "\tRed Gem: " + currentMonster.getRedGem() 
+					+ "\tYellow Gem: " + currentMonster.getYellowGem() + "\tBlue Gem: " + currentMonster.getBlueGem();
+			timerCountdown.setInfoShowCount(5, currentMonsterInfoText);	
+			// 10å ì™ì˜™ å ì‹ìš¸ì˜™ å ì™ì˜™å ì‹¸ìš¸ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™, å ì™ì˜™ å ì™ì˜™å ï¿½ ì¹´å ì™ì˜™ ì°½å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ìŒ”ëŒì˜™. å ìŒ“ëªŒì˜™å ì™ì˜™ 10å ì™ì˜™ å ì‹ìš¸ì˜™ å ìŒ•ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™íŠ¼å ì™ì˜™ í™œå ì™ì˜™í™” å ì‹«ëŒì˜™.
 			
-			timerCountdown.setDrawCount(40);		// ¿©±â¼­ 40ÃÊ·Î ÇÑ ÀÌÀ¯´Â, À§¿¡¼­ ¸ó½ºÅÍ Á¤º¸ ¶ç¿ì´Â °É 10ÃÊ µô·¹ÀÌ Çß±â ¶§¹®ÀÌ´Ù.
+			timerCountdown.setDrawCount(45);		// å ì™ì˜™å ì©ì„œ 40å ì‹­ë¤„ì˜™ å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™, å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™ 10å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ìŒ©ê¹ì˜™ å ì™ì˜™å ì™ì˜™å ì‹±ëŒì˜™.
 			
-		} else {		// ´ÙÀ½ ¸ó½ºÅÍ°¡ ¾øÀ¸¸é Stage Á¾·á
+		} else {		// å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì‹¶ê³¤ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ Stage å ì™ì˜™å ì™ì˜™
 			myAggScore = getScore();
 			showMyScore();
 			
 			
-			// °ÔÀÓ Á¾·á ÄÚµå !! 
+			// å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ìŒ˜ë“¸ì˜™ !! 
 		}
 	}
 	
-	public int[] shuffleMonsterOrder(int[] arr, int count) {	// parameter·Î monsterOrder¸¦ ³Ö´Â´Ù.
-		// Server¿¡¼­ ½ÇÇàÇÑ´Ù. ¿©±â¼­´Â ¾²ÀÌÁö ¾ÊÀ¸´Ï±î ¹«½Ã.
-		int tmp = 0, rand1 = 0, rand2 = 0;
-		
-		for(int i = 0; i < count; i++) {
-			rand1 = random.nextInt(arr.length);
-			rand2 = random.nextInt(arr.length);
-			tmp = arr[rand1];
-			arr[rand1] = arr[rand2];
-			arr[rand2] = tmp;
-		}
-		return arr;
-	}
-	
-	public void setMyBattleCard(int index) {		// index°¡ ³»°¡ ³½ ¹èÆ² Ä«µå. 0¹øÀº ¹«È¿, 1~7 ±îÁö ÀÖ´Ù.
-		if(isThisPlayerChooseCard) {	// ÀÌ¹Ì Ä«µå¸¦ ¼±ÅÃÇØ¼­ ³Â´Ù¸é ½ÇÇàµÇÁö ¾Ê´Â´Ù. ÀÌ º¯¼ö´Â ÀüÅõ ÈÄ¿¡ false·Î ¹Ù²ï´Ù.
+	public void setMyBattleCard(int index) {		// indexå ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™ å ì™ì˜™í‹€ ì¹´å ì™ì˜™. 0å ì™ì˜™å ì™ì˜™ å ì™ì˜™íš¨, 1~7 å ì™ì˜™å ì™ì˜™ å ìŒëŒì˜™.
+		if(isThisPlayerChooseCard) {	// å ì‹±ë±„ì˜™ ì¹´å ì²ë¥¼ å ì™ì˜™å ì™ì˜™å ìŒ”ì‡½ì˜™ å ìŠ¹ë‹¤ëªŒì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™å ï¿½ å ì‹­ëŠ”ëŒì˜™. å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì‹ìš¸ì˜™ falseå ì™ì˜™ å ìŒ•ë€ì˜™å ï¿½.
 			return;
 		}
-		if(index != 0) { // index == 0 ÀÎ Ä«µå´Â ¹«È¿ Ä«µå.
-			if(isMyBattleCardPossible[index] == false) {	// ¹«È¿ Ä«µå¸¦ Á¦¿ÜÇÏ°í, ÀÌ¹Ì ¾´ Ä«µå¸¦ ¼±ÅÃÇÏ¸é Á¦ÃâÇÒ ¼ö ¾ø´Ù.
+		if(index != 0) { // index == 0 å ì™ì˜™ ì¹´å ì™ì˜™å ï¿½ å ì™ì˜™íš¨ ì¹´å ì™ì˜™.
+			if(isMyBattleCardPossible[index] == false) {	// å ì™ì˜™íš¨ ì¹´å ì²ë¥¼ å ì™ì˜™å ì™ì˜™å ì‹¹ê³¤ì˜™, å ì‹±ë±„ì˜™ å ì™ì˜™ ì¹´å ì²ë¥¼ å ì™ì˜™å ì™ì˜™å ì‹¹ëªŒì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì™ì˜™ å ì™ì˜™å ì™ì˜™.
+				printMessage("ì´ë¯¸ ì¹´ë“œë¥¼ ë“œë¡œìš° í–ˆê±°ë‚˜, ë‹¤ìŒ ë°°í‹€ ëŒ€ê¸° ì‹œê°„ì…ë‹ˆë‹¤.\n");
 				return;
 			}
 			setMyCardButtonEnable(index, false);
 		}
 		
-		timerCountdown.setDrawCount(-1);	// Å¸ÀÌ¸Ó ÅÂ½ºÅ©ÀÇ Ä«¿îÆ®°¡ -1ÀÌ¸é ¾Æ¹«°Íµµ ÇÏÁö ¾Ê´Â´Ù. 
+		timerCountdown.setDrawCount(-1);	// íƒ€å ì‹±ëªŒì˜™ å ìŠ¹ì™ì˜™í¬å ì™ì˜™ ì¹´å ì™ì˜™íŠ¸å ì™ì˜™ -1å ì‹±ëªŒì˜™ å ì‹£ë±„ì˜™å ì‹¶ë“¸ì˜™ å ì™ì˜™å ì™ì˜™ å ì‹­ëŠ”ëŒì˜™. 
 		isThisPlayerChooseCard = true;
 		myCurrentBattleCard = index;
 		isMyBattleCardPossible[index] = false;
-//		allPlayerCard[allPlayerCardCount++] = index;		// ¸ğµç ÇÃ·¹ÀÌ¾îÀÇ Ä«µå¸¦ µî·ÏÇÏ´Â ¹è¿­
-		allPlayerCardCount++;
-
+//		allPlayerCard[allPlayerCardCount++] = index;		// å ì™ì˜™å ï¿½ å ì‹œë¤„ì˜™å ì‹±ì–µì˜™å ì™ì˜™ ì¹´å ì²ë¥¼ å ì™ì˜™å ì™ì˜™æ±‚å ï¿½ å ì¼ì—´
+//		allPlayerCardCount++;
+//		CMMember groupMembers = m_clientStub.getGroupMembers();
+		
 		CMInteractionInfo interInfo = m_clientStub.getCMInfo().getInteractionInfo();
 		CMUser myself = interInfo.getMyself();
 		
@@ -443,47 +722,61 @@ public class GUIClient extends JFrame {
 		m_clientStub.cast(use, myself.getCurrentSession(), myself.getCurrentGroup());
 		use = null;
 		
-		if(numOfPlayer == allPlayerCardCount) {	// Ä«µå°¡ »ÌÈù ¼ö¿Í ÇÃ·¹ÀÌ¾î ¼ö°¡ °°À¸¸é ¹èÆ² ÁøÇà
-			battleWithMonster();
-		}
+//		if(numOfPlayer == allPlayerCardCount) {	// ì¹´å ì²ê°€ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì‹œë¤„ì˜™å ì‹±ì–µì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì™ì˜™í‹€ å ì™ì˜™å ì™ì˜™
+//			battleWithMonster();
+//		}
 	}
 	
-	public void setOtherBattleCard(String playerName, int battleCard) {
-		// À¯Àúµé °£ Àı´ëÀûÀÎ ¼ø¼­°¡ ÇÊ¿ä !! È¤Àº ´Ù¸¥ À¯ÀúÀÇ ID±îÁö °°ÀÌ ¹Ş¾Æ¿Í¾ß ÇÑ´Ù.
+	public void setAllBattleCard(String playerName, int battleCard) {
+		// å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì‹­ìš¸ì˜™ !! í˜¹å ì™ì˜™ å ìŒ•ëªŒì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ IDå ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ìŒ¨ì•„ì™€ì–µì˜™ å ì‹¼ëŒì˜™.
 		if(otherBattleCardIndex >= 5) {
 			return;
 		}
 		otherPlayerAndCard[otherBattleCardIndex] = playerName + ": " + String.valueOf(battleCard);
 		otherBattleCard[otherBattleCardIndex] = battleCard;
 		otherBattleCardIndex++;
-
+		
 //		allPlayerCard[allPlayerCardCount++] = battleCard;
 		allPlayerCardCount++;
 		
-		if(numOfPlayer == allPlayerCardCount) {	// Ä«µå°¡ »ÌÈù ¼ö¿Í ÇÃ·¹ÀÌ¾î ¼ö°¡ °°À¸¸é ¹èÆ² ÁøÇà
+		System.out.println(allPlayerCardCount);
+		
+		if(numOfPlayer == allPlayerCardCount) {	// ì¹´å ì²ê°€ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì‹œë¤„ì˜™å ì‹±ì–µì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì™ì˜™í‹€ å ì™ì˜™å ì™ì˜™
 			battleWithMonster();
 		}
 	}
 	
 	public void battleWithMonster() {
-		int[] activeBattleCard = Arrays.copyOf(otherBattleCard, otherBattleCard.length);	// ³ª¸¦ Á¦¿ÜÇÑ À¯È¿ÇÑ Ä«µå¸¦ ¸ğÀº ¹è¿­.
-		int battleCardAgg = 0;			// À¯È¿ÇÑ ¹èÆ²Ä«µå ÃÑÇÕ
+		int[] activeBattleCard = Arrays.copyOf(otherBattleCard, otherBattleCard.length);
+		int battleCardAgg = 0;			// å ì™ì˜™íš¨å ì™ì˜™ å ì™ì˜™í‹€ì¹´å ì™ì˜™ å ì™ì˜™å ì™ì˜™
 		int minBattleCard = 8;
 		
+		// Test Code
+		for(int i=0; i<5; i++) {
+			System.out.println(otherPlayerAndCard[i]);
+		}
+		for(int i=0; i<5; i++) {
+			System.out.println("Battle Cards: " + otherBattleCard[i]);
+		}
+		
 		String otherPlayerAndCardText = "";
-		for(int i=0; i < otherBattleCardIndex - 1; i++) {
+		for(int i=0; i < otherBattleCardIndex; i++) {
 			otherPlayerAndCardText = otherPlayerAndCardText + otherPlayerAndCard[i] + " ";
 		}
-		// ¸ğµç »ç¶÷ÀÇ Ä«µå °ø°³
+		// å ì™ì˜™å ï¿½ å ì™ì˜™å ì™ì˜™å ï¿½ ì¹´å ì™ì˜™ å ì™ì˜™å ì™ì˜™
 		setOtherPlayersCard(otherPlayerAndCardText);
 		
-		if(myCurrentBattleCard == 0) {	// ³» Ä«µå°¡ 0ÀÌ¸é ¹«È¿È­.
+		if(myCurrentBattleCard == 0) {	// å ì™ì˜™ ì¹´å ì²ê°€ 0å ì‹±ëªŒì˜™ å ì™ì˜™íš¨í™”.
 			isMyBattleCardActive = false;
 		}
 		
-		for(int i=0; i<5; i++) {		// ³» Ä«µå¿Í ´Ù¸¥ »ç¶÷µéÀÌ ³½ Ä«µå ºñ±³. ±×¸®°í ´Ù¸¥ »ç¶÷ÀÌ ³½ Ä«µåµé ³¢¸®µµ ºñ±³.
+		for(int i=0; i<5; i++) {		// å ì™ì˜™ ì¹´å ì™ì˜™å ï¿½ å ìŒ•ëªŒì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™å ï¿½ å ì™ì˜™ ì¹´å ì™ì˜™ å ì™ì˜™. å ìŒ“ëªŒì˜™å ì™ì˜™ å ìŒ•ëªŒì˜™ å ì™ì˜™å ì™ì˜™å ï¿½ å ì™ì˜™ ì¹´å ì™ì˜™å ï¿½ å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì™ì˜™.
 			int tmp = otherBattleCard[i];
 			if(tmp == myCurrentBattleCard) {
+				if(isMyCardCheckedInBattleCardArray == false) {
+					isMyCardCheckedInBattleCardArray = true;
+					continue;
+				}
 				isMyBattleCardActive = false;
 				activeBattleCard[i] = -1;
 			}
@@ -496,14 +789,19 @@ public class GUIClient extends JFrame {
 			}
 		}
 		
-		if(isMyBattleCardActive) {	// if my battle card is active, add is to battle card Agg
-			battleCardAgg += myCurrentBattleCard;
+		// Test Code
+		for(int i=0; i<5; i++) {
+			System.out.println("Active Battle Cards: " + activeBattleCard[i]);
 		}
 		
-		for(int i = 0; i < 5; i++) {	// ³ª¸¦ Á¦¿ÜÇÑ À¯È¿ÇÑ Ä«µåÀÇ ÀüÅõ·Â ÇÕ»ê.
+//		if (isMyBattleCardActive) {
+//			battleCardAgg += myCurrentBattleCard;
+//		}
+		
+		for(int i = 0; i < 5; i++) {	// å ì™ì˜™íš¨å ì™ì˜™ ì¹´å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ìŒŒì‚¼ì˜™.
 			if(activeBattleCard[i] > 0) {
 				battleCardAgg += activeBattleCard[i];
-				if(minBattleCard > activeBattleCard[i]) {	// ³» Ä«µå¸¦ Á¦¿ÜÇÑ À¯È¿ÇÑ Ä«µå Áß¿¡¼­ °¡Àå ¼ıÀÚ°¡ ÀÛÀº Ä«µå ¼±ÅÃ
+				if(minBattleCard > activeBattleCard[i]) {	// å ì™ì˜™ ì¹´å ì²ë¥¼ å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì™ì˜™íš¨å ì™ì˜™ ì¹´å ì™ì˜™ å ìŒ©ìš¸ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ìŒ˜ê³¤ì˜™ å ì™ì˜™å ì™ì˜™ ì¹´å ì™ì˜™ å ì™ì˜™å ì™ì˜™
 					minBattleCard = activeBattleCard[i];
 				}
 			}
@@ -512,13 +810,13 @@ public class GUIClient extends JFrame {
 		CMInteractionInfo interInfo = m_clientStub.getCMInfo().getInteractionInfo();
 		CMUser myself = interInfo.getMyself();
 		CMUserEvent use = new CMUserEvent();
-		CMUserEvent useForBattleFinish = new CMUserEvent();		// ±âÁ¸ User Event¸¦ ÀçÈ°¿ëÇØµµ µÇ´ÂÁö È®½ÇÄ¡ ¾Ê¾Æ¼­ »õ·Î ¸¸µç À¯Àú ÀÌº¥Æ®.
+		CMUserEvent useForBattleFinish = new CMUserEvent();		// å ì™ì˜™å ì™ì˜™ User Eventå ì™ì˜™ å ì™ì˜™í™œå ì™ì˜™å ìŒ”ë“¸ì˜™ å ì‹¤ëŒì˜™å ì™ì˜™ í™•å ì™ì˜™ì¹˜ å ì‹­ì•„ì‡½ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì‹±ë¸ì˜™íŠ¸.
 		use.setHandlerSession(myself.getCurrentSession());
 		use.setHandlerGroup(myself.getCurrentGroup());
 		
-		if(battleCardAgg >= currentMonster.getPower()) {	// ½Â¸® !!
+		if(battleCardAgg >= currentMonster.getPower()) {	// å ìŠ¹ëªŒì˜™ !!
 			if(isMyBattleCardActive) {
-				if( myCurrentBattleCard < minBattleCard ) {	// ³» Ä«µå°¡ °¡Àå ÀÛ´Ù¸é º¸»ó ¹Ş´Â´Ù. ³»°¡ ÀÌ±â¸é ³»°¡ ½Â¸® Event ¼ÛÃâ.
+				if( myCurrentBattleCard == minBattleCard ) {	// å ì™ì˜™ ì¹´å ì²ê°€ å ì™ì˜™å ì™ì˜™ å ìŒœë‹¤ëªŒì˜™ å ì™ì˜™å ì™ì˜™ å ìŒ¨ëŠ”ëŒì˜™. å ì™ì˜™å ì™ì˜™ å ì‹±ê¹ì˜™å ï¿½ å ì™ì˜™å ì™ì˜™ å ìŠ¹ëªŒì˜™ Event å ì™ì˜™å ì™ì˜™.
 					String winGems = myself.getName() + " wins\nRed Gems: " + currentMonster.getRedGem() 
 						+ "\nYellow Gems: " + currentMonster.getYellowGem() + "\nBlue Gems: " + currentMonster.getBlueGem()+"\n";
 					this.myRedGem += currentMonster.getRedGem();
@@ -527,15 +825,15 @@ public class GUIClient extends JFrame {
 					
 					use.setStringID("Win Gems");
 					use.setEventField(CMInfo.CM_INT, "Num Of Gems", winGems);
-					printMessage(winGems);
+//					printMessage(winGems);
 					m_clientStub.cast(use, myself.getCurrentSession(), myself.getCurrentGroup());
 					
 				}
 			}
-		} else {	// ÆĞ¹è. ³» º¸¼®ÀÌ »¯±â¸é Event ¼ÛÃâ.
+		} else {	// å ì‹»ë±„ì˜™. å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ï¿½ Event å ì™ì˜™å ì™ì˜™.
 			if(isMyBattleCardActive == false || myCurrentBattleCard < minBattleCard) {
-				int maxNumOfGem = this.myRedGem;	// ¼¼ º¸¼® Á¾·ù Áß °¡Àå ¸¹Àº ¼öÀÇ º¸¼® °³¼ö.
-				int maxGemIndex = 4;				// ¼¼ º¸¼® Á¾·ù Áß °¡Àå ¸¹Àº ¼öÀÇ º¸¼®. 3 bit·Î bit-wise °è»ê. 4´Â »¡°­, 2´Â ³ë¶û, 1Àº ÆÄ¶û.
+				int maxNumOfGem = this.myRedGem;	// å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™.
+				int maxGemIndex = 4;				// å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™. 3 bitå ì™ì˜™ bit-wise å ì™ì˜™å ï¿½. 4å ì™ì˜™ å ì™ì˜™å ì™ì˜™, 2å ì™ì˜™ å ì™ì˜™å ï¿½, 1å ì™ì˜™ å ì‹ë°ì˜™.
 				
 				if(maxNumOfGem < this.myYellowGem) {
 					maxNumOfGem = this.myYellowGem;
@@ -550,36 +848,36 @@ public class GUIClient extends JFrame {
 					maxGemIndex |= 1;
 				}
 				
-				if((maxGemIndex & 4) == 4) {		// »¡°­ º¸¼® ¸ô¼ö !!
+				if((maxGemIndex & 4) == 4) {		// å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ !!
 					use.setStringID("Lose Red Gems");
 					use.setEventField(CMInfo.CM_INT, "Num Of Red Gems", String.valueOf(this.myRedGem));
 					m_clientStub.cast(use, myself.getCurrentSession(), myself.getCurrentGroup());
 					
-					if(currentMonster.isNextMonsterExist()) {
-						this.currentMonster.getNextMonster().plusGems(myRedGem, 0, 0);
-					}
+//					if(currentMonster.isNextMonsterExist()) {
+//						this.currentMonster.getNextMonster().plusGems(myRedGem, 0, 0);
+//					}
 					this.myRedGem = 0;
 				}
 				
-				if((maxGemIndex & 2) == 2) {		// ³ë¶û º¸¼® ¸ô¼ö !!
+				if((maxGemIndex & 2) == 2) {		// å ì™ì˜™å ï¿½ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ !!
 					use.setStringID("Lose Yellow Gems");
 					use.setEventField(CMInfo.CM_INT, "Num Of Yellow Gems", String.valueOf(this.myYellowGem));
 					m_clientStub.cast(use, myself.getCurrentSession(), myself.getCurrentGroup());
 					
-					if(currentMonster.isNextMonsterExist()) {
-						this.currentMonster.getNextMonster().plusGems(0, myYellowGem, 0);
-					}
+//					if(currentMonster.isNextMonsterExist()) {
+//						this.currentMonster.getNextMonster().plusGems(0, myYellowGem, 0);
+//					}
 					this.myYellowGem = 0;
 				}
 				
-				if((maxGemIndex & 1) == 1) {		// ÆÄ¶û º¸¼® ¸ô¼ö !!
+				if((maxGemIndex & 1) == 1) {		// å ì‹ë°ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ !!
 					use.setStringID("Lose Blue Gems");
 					use.setEventField(CMInfo.CM_INT, "Num Of Blue Gems", String.valueOf(this.myBlueGem));
 					m_clientStub.cast(use, myself.getCurrentSession(), myself.getCurrentGroup());
 					
-					if(currentMonster.isNextMonsterExist()) {
-						this.currentMonster.getNextMonster().plusGems(0, 0, myBlueGem);
-					}
+//					if(currentMonster.isNextMonsterExist()) {
+//						this.currentMonster.getNextMonster().plusGems(0, 0, myBlueGem);
+//					}
 					this.myBlueGem = 0;
 				}
 			}
@@ -587,30 +885,30 @@ public class GUIClient extends JFrame {
 		use = null;
 		setMyScore("Red Gems: " + myRedGem + "\tYellow Gems: " + myYellowGem + "\tBlue Gems: " + myBlueGem);
 		
-		// ³» ¾îÇÃ¿¡¼­ ÀüÅõ°¡ ³¡³ª¸é ³¡³µ´Ù°í ¾Ë·ÁÁÖ´Â ÄÚµå.
+		// å ì™ì˜™ å ì™ì˜™å ì‹œìš¸ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ìŒ•ê³¤ì˜™ å ì‹¯ë¤„ì˜™å ìŒëŒì˜™ å ìŒ˜ë“¸ì˜™.
 		useForBattleFinish.setStringID("Battle Finish");
 		useForBattleFinish.setHandlerSession(myself.getCurrentSession());
 		useForBattleFinish.setHandlerGroup(myself.getCurrentGroup());
 		useForBattleFinish.setEventField(CMInfo.CM_INT, "userName", myself.getName());
 		m_clientStub.cast(useForBattleFinish, myself.getCurrentSession(), myself.getCurrentGroup());
 		
-		battleFinish();
+//		battleFinish();
 	}
 	
 	public void battleFinish() {
 		
-		if(otherPlayerFinishCount >= numOfPlayer - 1) {	// ¸¶Áö¸·¿¡ ÀÔ·ÂÇÑ Á¤º¸´Â Ä«¿îÆ®°¡ ÀüÃ¼ ÇÃ·¹ÀÌ¾î ¼ö -1 ÀÏ ¶§ ÀÔ·ÂÇÏ°Ô µÈ´Ù.
+		if(otherPlayerFinishCount >= numOfPlayer - 1) {	// å ì™ì˜™å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ìŒ‰ë¤„ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ ì¹´å ì™ì˜™íŠ¸å ì™ì˜™ å ì™ì˜™ì²´ å ì‹œë¤„ì˜™å ì‹±ì–µì˜™ å ì™ì˜™ -1 å ì™ì˜™ å ì™ì˜™ å ìŒ‰ë¤„ì˜™å ì‹¹ê³¤ì˜™ å ì‹«ëŒì˜™.
 			otherPlayerFinishCount = 0;
 			proceedStage();					// 
 			
-		} else {		// ÇÃ·¹ÀÌ¾î Á¤º¸¸¦ ÇÏ³ª¾¿ ÀÔ·ÂÇÒ ¶§¸¶´Ù Ä«¿îÆ®°¡ ¿À¸¥´Ù.
+		} else {		// å ì‹œë¤„ì˜™å ì‹±ì–µì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì‹¹ë†‚ì˜™å ì™ì˜™ å ìŒ‰ë¤„ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ ì¹´å ì™ì˜™íŠ¸å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™.
 			otherPlayerFinishCount++;
 		}
 	}
 	
-	public int getScore() {		// º¸¼® ¾çÀ¸·Î Á¡¼ö ÇÕ»ê.
+	public int getScore() {		// å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ìŒŒì‚¼ì˜™.
 		int score = 0;
-		int minNumOfGem = this.myRedGem;	// ¼¼ º¸¼® Á¾·ù Áß °¡Àå ÀûÀº ¼öÀÇ º¸¼® °³¼ö.
+		int minNumOfGem = this.myRedGem;	// å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™.
 		
 		if(minNumOfGem > this.myYellowGem) {
 			minNumOfGem = this.myYellowGem;
@@ -623,7 +921,7 @@ public class GUIClient extends JFrame {
 		return score;
 	}
 	
-	public void showMyScore() {		// ³» Á¡¼ö¸¦ ³» client¿¡ ÀÔ·ÂÇÏ°í event·Î »Ñ·ÁÁÖ´Â ÇÔ¼ö
+	public void showMyScore() {		// å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì™ì˜™ clientå ì™ì˜™ å ìŒ‰ë¤„ì˜™å ì‹¹ê³¤ì˜™ eventå ì™ì˜™ å ì‹¼ë¤„ì˜™å ìŒëŒì˜™ å ìŒ‰ì‡½ì˜™
 		CMInteractionInfo interInfo = m_clientStub.getCMInfo().getInteractionInfo();
 		CMUser myself = interInfo.getMyself();
 		
@@ -634,23 +932,25 @@ public class GUIClient extends JFrame {
 		m_clientStub.cast(use, myself.getCurrentSession(), myself.getCurrentGroup());
 		use = null;
 		
-		showAllScore(myself.getName(), myAggScore);		// ³» Á¡¼ö¸¦ »Ñ·ÁÁÖ°í show all score¿¡ ³» Á¡¼ö¸¦ ÀÔ·ÂÇØÁØ´Ù.
+//		showAllScore(myself.getName(), myAggScore);		// å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì‹¼ë¤„ì˜™å ìŒê³¤ì˜™ show all scoreå ì™ì˜™ å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ìŒ‰ë¤„ì˜™å ì™ì˜™å ìŒ”ëŒì˜™.
 	}
 	
-	public void showAllScore(String userName, int score) {	// °ÔÀÓÀÌ ´Ù ³¡³ª°í ¸¶Áö¸· °á°ú º¸¿©ÁÖ´Â ÇÔ¼ö. ÀÌº¥Æ® ÇÚµé·¯°¡ ºÎ¸¥´Ù.
+	public void showAllScore(String userName, int score) {	// å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ï¿½ å ì™ì˜™å ì™ì˜™å ìŒëŒì˜™ å ìŒ‰ì‡½ì˜™. å ì‹±ë¸ì˜™íŠ¸ å ìŒ˜ë“¤ëŸ¬å ì™ì˜™ å ì‹¸ëªŒì˜™å ì™ì˜™.
 
-		if(otherPlayerEventCount >= numOfPlayer - 1) {	// ¸¶Áö¸·¿¡ ÀÔ·ÂÇÑ Á¤º¸´Â Ä«¿îÆ®°¡ ÀüÃ¼ ÇÃ·¹ÀÌ¾î ¼ö -1 ÀÏ ¶§ ÀÔ·ÂÇÏ°Ô µÈ´Ù.
-			otherPlayerName[otherPlayerEventCount] = userName;
-			otherPlayerScore[otherPlayerEventCount] = score;
-			int index = otherPlayerEventCount;
-			int tmp, j;	// Á¤·Ä¿¡ ¾µ º¯¼ö
-			String tmpStr;	// Á¤·Ä¿¡ ¾²°í ÀÓ½Ã·Î ¾²´Â ½ºÆ®¸µ.
+		otherPlayerName[otherPlayerEventCount] = userName;
+		otherPlayerScore[otherPlayerEventCount] = score;
+		otherPlayerEventCount++;
+		
+		if(otherPlayerEventCount >= numOfPlayer - 1) {	// å ì™ì˜™å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ìŒ‰ë¤„ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ ì¹´å ì™ì˜™íŠ¸å ì™ì˜™ å ì™ì˜™ì²´ å ì‹œë¤„ì˜™å ì‹±ì–µì˜™ å ì™ì˜™ -1 å ì™ì˜™ å ì™ì˜™ å ìŒ‰ë¤„ì˜™å ì‹¹ê³¤ì˜™ å ì‹«ëŒì˜™.
+			int index = otherPlayerEventCount + 1;
+			int tmp, j;	// å ì™ì˜™å ì‹ìš¸ì˜™ å ì™ì˜™ å ì™ì˜™å ì™ì˜™
+			String tmpStr;	// å ì™ì˜™å ì‹ìš¸ì˜™ å ì™ì˜™å ì™ì˜™ å ìŒˆì‹œë¤„ì˜™ å ì™ì˜™å ì™ì˜™ å ì™ì˜™íŠ¸å ì™ì˜™.
 			String[] otherPlayerNameSortedByHighScore = Arrays.copyOf(otherPlayerName, otherPlayerName.length);
 			int[] otherPlayerScoreSortedByHighScore = Arrays.copyOf(otherPlayerScore, otherPlayerScore.length);
-			for(int i = 1; i < index; i++) {	// »ğÀÔ Á¤·Ä
+			for(int i = 1; i < index; i++) {	// å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™
 				tmp = otherPlayerScoreSortedByHighScore[i];
 				tmpStr = otherPlayerNameSortedByHighScore[i];
-				for(j = i-1; j>=0 && otherPlayerScoreSortedByHighScore[j]>tmp; j--) {
+				for(j = i-1; j>=0 && otherPlayerScoreSortedByHighScore[j] < tmp; j--) {
 					otherPlayerScoreSortedByHighScore[j+1] = otherPlayerScoreSortedByHighScore[j];
 					otherPlayerNameSortedByHighScore[j+1] = otherPlayerNameSortedByHighScore[j];
 				}
@@ -660,16 +960,14 @@ public class GUIClient extends JFrame {
 
 			tmpStr = "\n=========== Game Result ===========\n";
 			for(int i=0; i<index; i++) {
-				tmpStr = tmpStr + (i+1) + "µî " + otherPlayerNameSortedByHighScore[i] + ": " + otherPlayerScoreSortedByHighScore[i] + "Á¡\n";
+				tmpStr = tmpStr + (i+1) + "ë“± " + otherPlayerNameSortedByHighScore[i] + ": " + otherPlayerScoreSortedByHighScore[i] + "\n";
 			}
 			printMessage(tmpStr);
 			otherPlayerEventCount = 0;
-			
-		} else {	// ÇÃ·¹ÀÌ¾î Á¤º¸¸¦ ÇÏ³ª¾¿ ÀÔ·ÂÇÒ ¶§¸¶´Ù Ä«¿îÆ®°¡ ¿À¸¥´Ù.
-			otherPlayerName[otherPlayerEventCount] = userName;
-			otherPlayerScore[otherPlayerEventCount] = score;
-			otherPlayerEventCount++;
-		}
+			leavePlayRoom(m_clientStub);
+		} 
+//		else {	// å ì‹œë¤„ì˜™å ì‹±ì–µì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ å ì‹¹ë†‚ì˜™å ì™ì˜™ å ìŒ‰ë¤„ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ ì¹´å ì™ì˜™íŠ¸å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™.
+//		}
 	}
 	
 	private void addStylesToDocument(StyledDocument doc)
@@ -704,11 +1002,31 @@ public class GUIClient extends JFrame {
 		p1.add(monsterInfo, BorderLayout.CENTER);
 		p2.setLayout(new GridLayout(2, 1));
 		myCardArea.setLayout(new BorderLayout());
-		cardPanel.setLayout(new FlowLayout());
-//		cardPanel.add(myBattleCardTopic);
-		for(int i = 0; i < 8; i++) {
-			cardPanel.add(myBattleCards[i]);
+		
+		cardPanel.setLayout(new GridLayout(2, 1));
+		JPanel cardPanelTop = new JPanel();
+		cardPanelTop.setLayout(new FlowLayout());
+		
+		for(int i = 0; i < 4; i++) {
+			cardPanelTop.add(myBattleCards[i]);
 		}
+		
+		JPanel cardPanelBottom = new JPanel();
+		cardPanelBottom.setLayout(new FlowLayout());
+		
+		for(int i = 4; i < 8; i++) {
+			cardPanelBottom.add(myBattleCards[i]);
+		}
+		
+		cardPanel.add(cardPanelTop);
+		cardPanel.add(cardPanelBottom);
+		
+//		cardPanel.setLayout(new FlowLayout());
+//		for(int i = 0; i < 8; i++) {
+//			cardPanel.add(myBattleCards[i]);
+//		}
+		// old code
+		
 		myCardArea.add(myBattleCardTopic, BorderLayout.WEST);
 		myCardArea.add(cardPanel, BorderLayout.CENTER);
 		p2.add(myCardArea);
@@ -744,53 +1062,132 @@ public class GUIClient extends JFrame {
 		}
 	}
 	
+	public void showSessionInfo(String result) {
+		
+		String resultText = "Name\t		Numer Of User\t		possible Groups" + 
+				"\n======================================================================\n";
+		CMSessionEvent se = null;
+		se = m_clientStub.syncRequestSessionInfo();
+		if (se == null) {
+			resultText = resultText + "Failed to get session-info!!\n";
+			setUserInfoBySessions(resultText);
+			return;
+		}
+		Iterator<CMSessionInfo> iter = se.getSessionInfoList().iterator();
+		while(iter.hasNext()) {
+			CMSessionInfo itInfo = iter.next();
+			resultText = resultText + itInfo.getSessionName() + "\t" + itInfo.getUserNum() + "\t" + itInfo.getPossibleGroups() +"\n";
+		}
+		if (result != null)
+			resultText += result;
+		setUserInfoBySessions(resultText);
+		
+	}
+	
+	// overloading
+	public void showSessionInfo() {
+		
+		String resultText = "Name\t	Numer Of User\t	possible Groups" + 
+				"\n===================================================\n";
+		CMSessionEvent se = null;
+		se = m_clientStub.syncRequestSessionInfo();
+		if (se == null) {
+			resultText = resultText + "Failed to get session-info!!\n";
+			setUserInfoBySessions(resultText);
+			return;
+		}
+		Iterator<CMSessionInfo> iter = se.getSessionInfoList().iterator();
+		while(iter.hasNext()) {
+			CMSessionInfo itInfo = iter.next();
+			resultText = resultText + itInfo.getSessionName() + "\t\t" + itInfo.getUserNum() + "\t\t" + itInfo.getPossibleGroups() +"\n";
+		}
+		setUserInfoBySessions(resultText);
+		
+	}
+	
+	public class MyRadioActionListener implements ActionListener {
+		
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			
+			JRadioButton button = (JRadioButton) e.getSource();
+			String type = button.getText();
+			
+			switch(type) {
+			case "Session 1":
+				sessionIndex = 1;
+				break;
+			case "Session 2":
+				sessionIndex = 2;
+				break;
+			case "Session 3":
+				sessionIndex = 3;
+				break;
+			default:
+				break;
+			}
+			
+			myChatMessage.requestFocus();
+			
+		}
+	}
 	
 	public class MyActionListener implements ActionListener {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			// TODO Auto-generated method stub
-//			JButton button = (JButton) e.getSource();
-			String s = e.getActionCommand();
-			if(s.equals("1")) {			// the battle cards
+			JButton button = (JButton) e.getSource();
+			String type = button.getText();
+			
+			switch(type) {
+			case "1":
 				myCurrentBattleCard = 1;
-			} else if(s.equals("2")) {
+				break;
+			case "2":
 				myCurrentBattleCard = 2;
-			} else if(s.equals("3")) {
+				break;
+			case "3":
 				myCurrentBattleCard = 3;
-			} else if(s.equals("4")) {
+				break;
+			case "4":
 				myCurrentBattleCard = 4;
-			} else if(s.equals("5")) {
+				break;
+			case "5":
 				myCurrentBattleCard = 5;
-			} else if(s.equals("6")) {
+				break;
+			case "6":
 				myCurrentBattleCard = 6;
-			} else if(s.equals("7")) {
+				break;
+			case "7":
 				myCurrentBattleCard = 7;
-			} else if(s.equals("¼±ÅÃ")) {
+				break;
+			case "my choice":
 				setMyBattleCard(myCurrentBattleCard);
-			} else if(s.equals("Game Start")) {		// °ÔÀÓ ½ÃÀÛ È¤Àº ÁØºñ ¹öÆ°
-//				startButton.setText("STARTTT");
-				
-			} else if(s.equals("Enter Session")) {
-				// Session Enter !!
-				// the session index variable is "sessionIndex (0~2)"
-				
-				// Test Code
-				m_clientStub.joinSession("session1");
-			} else if(s.equals("Session 1")) {
-				sessionIndex = 0;
-			} else if(s.equals("Session 2")) {
-				sessionIndex = 1;
-			} else if(s.equals("Session 3")) {
-				sessionIndex = 2;
-			} else if(s.equals("Session Info")) {
-				String resultText = "Name\t   Number Of User"
-						+ "\n=====================================================\n";
+				break;
+			case "Game Start":
+				readyToPlay(m_clientStub);
+				break;
+			case "Log in":
+				login(m_clientStub);
+				break;
+			case "Log out":
+				break;
+			case "Sign up":
+				break;
+			case "Sign out":
+				break;
+			case "Enter":
+				joinPlayRoom(m_clientStub);
+				break;
+			case "Session Info":
+				showSessionInfo();
+				/*
+				String resultText = "Name\t		Numer Of User\t		possible Groups" + 
+						"\n======================================================================\n";
 				CMSessionEvent se = null;
 				se = m_clientStub.syncRequestSessionInfo();
-				if(se == null) {		
-					// ¼­¹ö¿¡ Á¦´ë·Î ¿¬°áÀÌ ¾È µÇ¾î ÀÖÀ¸¸é Null Pointer ExceptionÀÌ ¹ß»ıÇÒ ¼ö ´Â ÀÖÀ¸³ª ¸ØÃßÁö´Â ¾Ê´Â´Ù.
-					// °è¼Ó ¹öÆ° ´­·¯º¸¸é ½ÇÆĞ ¸Ş¼¼Áö¸¦ Á¦´ë·Î Ãâ·ÂÇØÁØ´Ù.
+				if (se == null) {
 					resultText = resultText + "Failed to get session-info!!\n";
 					setUserInfoBySessions(resultText);
 					return;
@@ -798,9 +1195,13 @@ public class GUIClient extends JFrame {
 				Iterator<CMSessionInfo> iter = se.getSessionInfoList().iterator();
 				while(iter.hasNext()) {
 					CMSessionInfo itInfo = iter.next();
-					resultText = resultText + itInfo.getSessionName() + "\t" + itInfo.getUserNum() + "\n";
+					resultText = resultText + itInfo.getSessionName() + "\t" + itInfo.getUserNum() + "\t" + itInfo.getPossibleGroups();
 				}
 				setUserInfoBySessions(resultText);
+				*/
+				break;
+			default:
+				break;
 			}
 			
 			myChatMessage.requestFocus();
@@ -813,7 +1214,7 @@ public class GUIClient extends JFrame {
 		public void keyPressed(KeyEvent e) {
 			// TODO Auto-generated method stub
 			int key = e.getKeyCode();
-			if(key == KeyEvent.VK_ENTER) {						// ¿£ÅÍ ´©¸£¸é Ã¤ÆÃÃ¢ÀÇ ¸Ş¼¼Áö Àü´Ş.
+			if(key == KeyEvent.VK_ENTER) {						// å ì™ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™å ì™ì˜™ ì±„å ì™ì˜™ì°½å ì™ì˜™ å ìŒ¨ì‡½ì˜™å ì™ì˜™ å ì™ì˜™å ì™ì˜™.
 				JTextField input = (JTextField) e.getSource();
 				String strText = input.getText();
 				if(strText == null) {
@@ -878,65 +1279,15 @@ public class GUIClient extends JFrame {
 		}
 	}
 	
-	
-	// Test Code
-	public void testStartCM()
-	{
-		// get current server info from the server configuration file
-		String strCurServerAddress = null;
-		int nCurServerPort = -1;
-		String strNewServerAddress = null;
-		String strNewServerPort = null;
-		
-		strCurServerAddress = m_clientStub.getServerAddress();
-		nCurServerPort = m_clientStub.getServerPort();
-		
-		// ask the user if he/she would like to change the server info
-		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-		System.out.println("========== start CM");
-		System.out.println("current server address: "+strCurServerAddress);
-		System.out.println("current server port: "+nCurServerPort);
-		
-		try {
-			System.out.print("new server address (enter for current value): ");
-			strNewServerAddress = br.readLine().trim();
-			System.out.print("new server port (enter for current value): ");
-			strNewServerPort = br.readLine().trim();
-
-			// update the server info if the user would like to do
-			if(!strNewServerAddress.isEmpty() && !strNewServerAddress.equals(strCurServerAddress))
-				m_clientStub.setServerAddress(strNewServerAddress);
-			if(!strNewServerPort.isEmpty() && Integer.parseInt(strNewServerPort) != nCurServerPort)
-				m_clientStub.setServerPort(Integer.parseInt(strNewServerPort));
-			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		boolean bRet = m_clientStub.startCM();
-		if(!bRet)
-		{
-			System.err.println("CM initialization error!");
-			return;
-		}
-		
-		int randomName = random.nextInt(300);
-		m_clientStub.loginCM(String.valueOf(randomName), "1234");
-//		m_clientStub.joinSession("session1");
-//		m_clientStub.changeGroup("g1");
-	}
-	
-	
 	public static void main(String[] args) {
 //		Frame frame;
 //		frame.setVisible(true);
 		GUIClient app = new GUIClient();
-		app.testStartCM();
-		// Test Code //
-		int[] testOrder = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14};
-//		app.linkMonsterOrder(testOrder);
-//		app.proceedGame();
+		CMUser clientUser = app.getClientUserInfo();
+		CMClientStub cmstub = app.getClientStub();
+		cmstub.setAppEventHandler(app.getClientEventHandler());
+		
+		
 	}
 
 }
