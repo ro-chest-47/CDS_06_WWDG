@@ -1,3 +1,4 @@
+/*
 package gamePart;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -63,7 +64,7 @@ public class CMGameServerApp {
 		use = null;
 	}
 	
-	public int[] shuffleMonsterOrder(int[] arr, int count) {	// parameter·Î monsterOrder¸¦ ³Ö´Â´Ù.
+	public int[] shuffleMonsterOrder(int[] arr, int count) {	// parameterï¿½ï¿½ monsterOrderï¿½ï¿½ ï¿½Ö´Â´ï¿½.
 		int tmp = 0, rand1 = 0, rand2 = 0;
 		
 		for(int i = 0; i < count; i++) {
@@ -153,3 +154,4 @@ public class CMGameServerApp {
 	}
 
 }
+*/

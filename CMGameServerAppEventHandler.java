@@ -1,3 +1,4 @@
+/*
 package gamePart;
 import kr.ac.konkuk.ccslab.cm.event.CMEvent;
 import kr.ac.konkuk.ccslab.cm.event.handler.CMAppEventHandler;
@@ -36,3 +37,5 @@ public class CMGameServerAppEventHandler implements CMAppEventHandler{
 	}
 
 }
+
+*/

@@ -1,4 +1,4 @@
-package gamePart;
+//package gamePart;
 import java.security.SecureRandom;
 
 public class Monster {
@@ -23,11 +23,11 @@ public class Monster {
 		int redTmp = rand.nextInt(5);
 		int yellowTmp = rand.nextInt(5);
 		int blueTmp = rand.nextInt(5);
-		createMonster("no name", power, redTmp, yellowTmp, blueTmp);
+		createMonster("Monster", power, redTmp, yellowTmp, blueTmp);
 	}
 	
 	public Monster(int power, int red, int yellow, int blue) {
-		createMonster("no name", power, red, yellow, blue);
+		createMonster("Monster", power, red, yellow, blue);
 	}
 	
 	public Monster(String name, int power, int red, int yellow, int blue) {
