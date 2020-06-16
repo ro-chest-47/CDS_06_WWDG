@@ -135,6 +135,9 @@ public class GUIClientEventHandler implements CMAppEventHandler{
 			
 			m_clientStub.leaveSession();
 			m_client.isSessionF();
+			m_client.setUserInfoBySessions("Play 하던/예정이던 Session에서 나왔습니다.\n" 
+						+ "계속 게임을 하실 예정이라면 다시 Session Info button을 클릭 후 \n"
+						+ "Session 정보를 받아와 새로운 Session에 참여해주세요.\n");
 			break;
 			
 		case "0051":
@@ -224,26 +227,26 @@ public class GUIClientEventHandler implements CMAppEventHandler{
 			
 			if (se.isLoginScheme() == 1) {
 				if (se.isValidUser() == 0) {
-					m_client.setUserInfoBySessions(se.getUserName()+"은(는) 로그인에 실패하였습니다.\n" 
+					m_client.setUserInfoBySessions(m_clientStub.getMyself().getName()+"은(는) 로그인에 실패하였습니다.\n" 
 							+ "다시 한 번 로그인 혹은 회원 가입을 해주세요. 회원 가입 시에는....\n"
 							+ "원하시는 UserName을 영문 소문자 및 숫자를 사용하여 8글자 이상으로 입력해주세요.\n" 
 							+ "원하시는 Password를 영문 소문자 및 숫자를 사용하여 8글자 이상으로 입력해주세요.\n");
 				}
 				else if (se.isValidUser() == -1) {
-					m_client.setUserInfoBySessions(se.getUserName()+"은(는) 이미 로그인 된 유저입니다.\n"
+					m_client.setUserInfoBySessions(m_clientStub.getMyself().getName()+"은(는) 이미 로그인 된 유저입니다.\n"
 							+ "다시 한 번 로그인 혹은 회원 가입을 해주세요. 회원 가입 시에는....\n"
 							+ "원하시는 UserName을 영문 소문자 및 숫자를 사용하여 8글자 이상으로 입력해주세요.\n" 
 							+ "원하시는 Password를 영문 소문자 및 숫자를 사용하여 8글자 이상으로 입력해주세요.\n");
 				}
 				else {
-					m_client.setUserInfoBySessions(se.getUserName()+"은(는) 로그인에 성공 하였습니다.\n"
+					m_client.setUserInfoBySessions(m_clientStub.getMyself().getName()+"은(는) 로그인에 성공 하였습니다.\n"
 							+ "Session Info 버튼을 클릭하여 session 정보를 받아온 후,\n"
 							+ "원하는 Session을 선택하고 Enter button을 클릭하세요.\n");
 					m_client.isLoginT();
 				}
 				break;
 			} else {
-				m_client.setUserInfoBySessions(se.getUserName()+"은(는) 로그인에 성공 하였습니다.\n"
+				m_client.setUserInfoBySessions(m_clientStub.getMyself().getName()+"은(는) 로그인에 성공 하였습니다.\n"
 						+ "Session Info 버튼을 클릭하여 session 정보를 받아온 후,\n"
 						+ "원하는 Session을 선택하고 Enter button을 클릭하세요.\n");
 				m_client.isLoginT();
@@ -253,13 +256,13 @@ public class GUIClientEventHandler implements CMAppEventHandler{
 			
 		case CMSessionEvent.REGISTER_USER_ACK:
 			if (se.getReturnCode() == 1) {
-				m_client.setUserInfoBySessions(se.getUserName()+"은(는) 회원 가입에 성공하였습니다.\n" 
+				m_client.setUserInfoBySessions(m_clientStub.getMyself().getName()+"은(는) 회원 가입에 성공하였습니다.\n" 
 						+ "로그인 혹은 회원 가입을 해주세요. 회원 가입 시에는....\n"
 						+ "원하시는 UserName을 영문 소문자 및 숫자를 사용하여 8글자 이상으로 입력해주세요.\n" 
 						+ "원하시는 Password를 영문 소문자 및 숫자를 사용하여 8글자 이상으로 입력해주세요.\n");
 			}
 			else {
-				m_client.setUserInfoBySessions(se.getUserName()+"은(는) 회원 가입에 실하였습니다.\n" 
+				m_client.setUserInfoBySessions(m_clientStub.getMyself().getName()+"은(는) 회원 가입에 실하였습니다.\n" 
 						+ "다시 한 번 로그인 혹은 회원 가입을 해주세요. 회원 가입 시에는....\n"
 						+ "원하시는 UserName을 영문 소문자 및 숫자를 사용하여 8글자 이상으로 입력해주세요.\n" 
 						+ "원하시는 Password를 영문 소문자 및 숫자를 사용하여 8글자 이상으로 입력해주세요.\n");
@@ -268,13 +271,13 @@ public class GUIClientEventHandler implements CMAppEventHandler{
 			
 		case CMSessionEvent.DEREGISTER_USER_ACK:
 			if (se.getReturnCode() == 1) {
-				m_client.setUserInfoBySessions(se.getUserName()+"은(는) 회원 탈퇴에 성공하였습니다.\n" 
+				m_client.setUserInfoBySessions(m_clientStub.getMyself().getName()+"은(는) 회원 탈퇴에 성공하였습니다.\n" 
 						+ "로그인 혹은 회원 가입을 해주세요. 회원 가입 시에는....\n"
 						+ "원하시는 UserName을 영문 소문자 및 숫자를 사용하여 8글자 이상으로 입력해주세요.\n" 
 						+ "원하시는 Password를 영문 소문자 및 숫자를 사용하여 8글자 이상으로 입력해주세요.\n");
 			}
 			else {
-				m_client.setUserInfoBySessions(se.getUserName()+"은(는) 회원 탈퇴에 성공하였습니다.\n" 
+				m_client.setUserInfoBySessions(m_clientStub.getMyself().getName()+"은(는) 회원 탈퇴에 성공하였습니다.\n" 
 						+ "로그인 혹은 회원 가입을 해주세요. 회원 가입 시에는....\n"
 						+ "원하시는 UserName을 영문 소문자 및 숫자를 사용하여 8글자 이상으로 입력해주세요.\n" 
 						+ "원하시는 Password를 영문 소문자 및 숫자를 사용하여 8글자 이상으로 입력해주세요.\n");
